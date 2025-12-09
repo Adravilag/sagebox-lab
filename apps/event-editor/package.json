@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "astro dev --port 4570",
     "build": "astro build",
-    "preview": "astro preview --port 4570",
+    "preview": "node ./dist/server/entry.mjs",
+    "start": "node ./dist/server/entry.mjs",
     "clean": "rm -rf dist .astro"
   },
   "dependencies": {
-    "astro": "^5.0.0"
+    "astro": "^5.0.0",
+    "@astrojs/node": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

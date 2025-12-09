@@ -61,8 +61,7 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
-    "open": "^10.0.0",
-    "sirv": "^3.0.0"
+    "open": "^10.0.0"
   },
   "engines": {
     "node": ">=20.0.0"

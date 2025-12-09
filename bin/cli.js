@@ -15,8 +15,7 @@
 import { program } from 'commander';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { createServer } from 'http';
-import sirv from 'sirv';
+import { spawn } from 'child_process';
 import open from 'open';
 import { readFileSync, existsSync } from 'fs';
 
@@ -46,9 +45,9 @@ const TOOLS = {
 };
 
 /**
- * Start a local server for a tool
+ * Start a tool server (SSR mode)
  */
-async function startTool(toolName) {
+async function startTool(toolName, options = {}) {
   const tool = TOOLS[toolName];
   
   if (!tool) {
@@ -61,44 +60,95 @@ async function startTool(toolName) {
     process.exit(1);
   }
 
-  const distPath = join(ROOT_DIR, 'apps', toolName, 'dist');
+  const appDir = join(ROOT_DIR, 'apps', toolName);
+  const entryPath = join(appDir, 'dist', 'server', 'entry.mjs');
   
-  if (!existsSync(distPath)) {
-    console.error(`❌ Tool "${toolName}" is not built.`);
-    console.log('');
-    console.log('Run the following command to build:');
-    console.log(`  npm run build --workspace=apps/${toolName}`);
-    process.exit(1);
+  // Check if built
+  if (!existsSync(entryPath)) {
+    console.log(`⏳ Building ${tool.name}...`);
+    
+    // Run build
+    const buildProcess = spawn('npm', ['run', 'build'], {
+      cwd: appDir,
+      stdio: 'inherit',
+      shell: true,
+    });
+    
+    await new Promise((resolve, reject) => {
+      buildProcess.on('close', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Build failed with code ${code}`));
+      });
+    });
   }
 
-  const serve = sirv(distPath, { single: true, dev: false });
+  const url = `http://localhost:${tool.port}`;
   
-  const server = createServer((req, res) => {
-    serve(req, res, () => {
-      res.statusCode = 404;
-      res.end('Not found');
-    });
+  console.log('');
+  console.log(`🧪 SageBox Lab - ${tool.name}`);
+  console.log('');
+  console.log(`   Local:   ${url}`);
+  console.log('');
+  console.log('   Press Ctrl+C to stop');
+  console.log('');
+
+  // Set PORT environment variable
+  const env = { ...process.env, PORT: tool.port.toString(), HOST: '0.0.0.0' };
+  
+  // Start the server
+  const serverProcess = spawn('node', [entryPath], {
+    cwd: appDir,
+    stdio: 'inherit',
+    env,
   });
 
-  server.listen(tool.port, () => {
-    const url = `http://localhost:${tool.port}`;
-    console.log('');
-    console.log(`🧪 SageBox Lab - ${tool.name}`);
-    console.log('');
-    console.log(`   Local:   ${url}`);
-    console.log('');
-    console.log('   Press Ctrl+C to stop');
-    console.log('');
-    
-    open(url);
-  });
+  // Open browser after a short delay
+  if (!options.noBrowser) {
+    setTimeout(() => {
+      open(url);
+    }, 1500);
+  }
 
   // Handle graceful shutdown
   process.on('SIGINT', () => {
     console.log('\n👋 Shutting down...');
-    server.close();
+    serverProcess.kill();
     process.exit(0);
   });
+
+  // Keep the process alive
+  await new Promise(() => {});
+}
+
+/**
+ * Start a tool in development mode
+ */
+async function startToolDev(toolName) {
+  const tool = TOOLS[toolName];
+  
+  if (!tool) {
+    console.error(`❌ Unknown tool: ${toolName}`);
+    process.exit(1);
+  }
+
+  const appDir = join(ROOT_DIR, 'apps', toolName);
+  
+  console.log('');
+  console.log(`🧪 SageBox Lab - ${tool.name} (dev mode)`);
+  console.log('');
+
+  const devProcess = spawn('npm', ['run', 'dev'], {
+    cwd: appDir,
+    stdio: 'inherit',
+    shell: true,
+  });
+
+  process.on('SIGINT', () => {
+    devProcess.kill();
+    process.exit(0);
+  });
+
+  await new Promise(() => {});
 }
 
 // CLI setup
@@ -111,19 +161,43 @@ program
   .command('icon-manager')
   .alias('icons')
   .description('Manage and organize SVG icons')
-  .action(() => startTool('icon-manager'));
+  .option('--dev', 'Run in development mode')
+  .option('--no-browser', 'Do not open browser automatically')
+  .action((options) => {
+    if (options.dev) {
+      startToolDev('icon-manager');
+    } else {
+      startTool('icon-manager', { noBrowser: options.noBrowser === false });
+    }
+  });
 
 program
   .command('style-editor')
   .alias('styles')
   .description('Edit CSS tokens and design variables')
-  .action(() => startTool('style-editor'));
+  .option('--dev', 'Run in development mode')
+  .option('--no-browser', 'Do not open browser automatically')
+  .action((options) => {
+    if (options.dev) {
+      startToolDev('style-editor');
+    } else {
+      startTool('style-editor', { noBrowser: options.noBrowser === false });
+    }
+  });
 
 program
   .command('event-editor')
   .alias('events')
   .description('Configure and test component events')
-  .action(() => startTool('event-editor'));
+  .option('--dev', 'Run in development mode')
+  .option('--no-browser', 'Do not open browser automatically')
+  .action((options) => {
+    if (options.dev) {
+      startToolDev('event-editor');
+    } else {
+      startTool('event-editor', { noBrowser: options.noBrowser === false });
+    }
+  });
 
 program
   .command('list')
