@@ -1,0 +1,828 @@
+---
+import { t, type Locale } from '../lib/i18n';
+
+interface Props {
+  categories: {
+    all: number;
+    custom: string[];
+    animated: string[];
+    sets: Record<string, string[]>;
+  };
+  currentCategory: string;
+  iconSets: Record<string, { name: string; color: string; license: string }>;
+  locale?: Locale;
+}
+
+const { categories, currentCategory, iconSets, locale = 'en' } = Astro.props;
+const i18n = (key: Parameters<typeof t>[0]) => t(key, locale);
+
+// Get active set info for pinned header
+const isSetCategory = Object.keys(iconSets).includes(currentCategory);
+const activeSetInfo = isSetCategory ? (iconSets[currentCategory] || { name: currentCategory, color: '#6366f1' }) : null;
+const activeSetCount = isSetCategory ? (categories.sets[currentCategory]?.length || 0) : 0;
+---
+
+<aside class="im-sidebar">
+  <div class="im-sidebar-header">
+    <div class="im-logo">
+      <div class="im-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+          <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+          <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+          <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"></path>
+        </svg>
+      </div>
+      <div class="im-logo-text">
+        SageBox
+        <span>Icon Manager</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="im-sidebar-content">
+    <div class="im-sidebar-section">
+      <div class="im-sidebar-section-title">{i18n('sidebar.categories')}</div>
+
+      <a
+        href="/?category=all"
+        class:list={["im-category-item", { active: currentCategory === 'all' }]}
+      >
+        <div class="im-category-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="im-category-info">
+          <div class="im-category-name">{i18n('sidebar.all_icons')}</div>
+          <div class="im-category-meta" id="im-all-count">{categories.all} {i18n('sidebar.icons')}</div>
+        </div>
+        {currentCategory === 'all' && categories.all > 0 && (
+          <button
+            class="im-category-export"
+            title={i18n('action.export')}
+            data-export="all"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17,8 12,3 7,8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </button>
+        )}
+      </a>
+
+      <a
+        href="/?category=favorites"
+        class:list={["im-category-item", { active: currentCategory === 'favorites' }]}
+        id="im-favorites-link"
+      >
+        <div class="im-category-icon" style="background: rgba(250, 204, 21, 0.15); color: #facc15;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <div class="im-category-info">
+          <div class="im-category-name">{i18n('sidebar.favorites')}</div>
+          <div class="im-category-meta" id="im-favorites-count">0 {i18n('sidebar.icons')}</div>
+        </div>
+      </a>
+
+      <a
+        href="/?category=project"
+        class:list={["im-category-item im-project-category", { active: currentCategory === 'project' }]}
+        id="im-project-link"
+      >
+        <div class="im-category-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <div class="im-category-info">
+          <div class="im-category-name">{i18n('sidebar.my_project')}</div>
+          <div class="im-category-meta" id="im-project-count">0 {i18n('sidebar.icons')}</div>
+        </div>
+        <button
+          class="im-category-export im-project-export"
+          title={i18n('action.export')}
+          id="im-export-project"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17,8 12,3 7,8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </button>
+      </a>
+
+      <a
+        href="/?category=custom"
+        class:list={["im-category-item im-cat-item", { active: currentCategory === 'custom' }]}
+        data-category="custom"
+      >
+        <div class="im-category-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"></path>
+            <circle cx="5" cy="5" r="1.5"></circle>
+            <circle cx="19" cy="5" r="1.5"></circle>
+          </svg>
+        </div>
+        <div class="im-category-info">
+          <div class="im-category-name">{i18n('sidebar.custom')}</div>
+          <div class="im-category-meta im-cat-count">{categories.custom.length} {i18n('sidebar.icons')}</div>
+        </div>
+        {currentCategory === 'custom' && categories.custom.length > 0 && (
+          <button
+            class="im-category-export"
+            title={i18n('action.export')}
+            data-export="custom"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17,8 12,3 7,8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </button>
+        )}
+      </a>
+
+      {categories.animated.length > 0 && (
+        <a
+          href="/?category=animated"
+          class:list={["im-category-item", { active: currentCategory === 'animated' }]}
+        >
+          <div class="im-category-icon im-animated-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </div>
+          <div class="im-category-info">
+            <div class="im-category-name">{i18n('sidebar.animated')}</div>
+            <div class="im-category-meta" id="im-animated-count">{categories.animated.length} {i18n('sidebar.icons')}</div>
+          </div>
+          {currentCategory === 'animated' && categories.animated.length > 0 && (
+            <button
+              class="im-category-export"
+              title={i18n('action.export')}
+              data-export="animated"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17,8 12,3 7,8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </button>
+          )}
+        </a>
+      )}
+    </div>
+
+    <div class="im-sidebar-section">
+      <div class="im-sidebar-section-title">{i18n('sidebar.icon_sets')}</div>
+
+      {/* Pinned active set - shown when scrolled out of view */}
+      {activeSetInfo && (
+        <div class="im-pinned-set" id="im-pinned-set">
+          <div
+            class="im-category-icon"
+            style={`background: ${activeSetInfo.color}22; color: ${activeSetInfo.color};`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <div class="im-category-info">
+            <div class="im-category-name">{activeSetInfo.name}</div>
+            <div class="im-category-meta">{activeSetCount} {t('sidebar.icons')}</div>
+          </div>
+          <button class="im-pinned-scroll-btn" id="im-scroll-to-active" title={t('sidebar.scroll_to_set')}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </button>
+        </div>
+      )}
+
+      <div class="im-icon-sets-list" id="im-icon-sets-list">
+        {Object.entries(categories.sets)
+          .sort((a, b) => b[1].length - a[1].length)
+          .map(([prefix, icons]) => {
+            const setInfo = iconSets[prefix] || { name: prefix, color: '#6366f1', license: 'Unknown' };
+            return (
+              <a
+                href={`/?category=${prefix}`}
+                class:list={["im-category-item im-cat-item", { active: currentCategory === prefix }]}
+                data-category={prefix}
+              >
+                <div
+                  class="im-category-icon"
+                  style={`background: ${setInfo.color}22; color: ${setInfo.color};`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                </div>
+                <div class="im-category-info">
+                  <div class="im-category-name">{setInfo.name}</div>
+                  <div class="im-category-meta im-cat-count">{icons.length}</div>
+                </div>
+                {currentCategory === prefix && icons.length > 0 && (
+                  <button
+                    class="im-category-export"
+                    title={`Export ${setInfo.name}`}
+                    data-export={prefix}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17,8 12,3 7,8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </button>
+                )}
+              </a>
+            );
+          })
+        }
+      </div>
+    </div>
+
+    <!-- Keyboard shortcuts -->
+    <div class="im-sidebar-section im-shortcuts-section">
+      <div class="im-sidebar-section-title">{i18n('sidebar.shortcuts')}</div>
+      <div class="im-shortcuts">
+        <div class="im-shortcut">
+          <kbd>/</kbd>
+          <span>{i18n('shortcut.search')}</span>
+        </div>
+        <div class="im-shortcut">
+          <kbd>Esc</kbd>
+          <span>{i18n('shortcut.close')}</span>
+        </div>
+        <div class="im-shortcut">
+          <kbd>A</kbd>
+          <span>{i18n('shortcut.add')}</span>
+        </div>
+        <div class="im-shortcut">
+          <kbd>I</kbd>
+          <span>{i18n('shortcut.import')}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with stats -->
+  <div class="im-sidebar-footer">
+    <div class="im-storage-info">
+      <span class="im-storage-label">{i18n('sidebar.total')}</span>
+      <span class="im-storage-value">{categories.all} {i18n('sidebar.icons')}</span>
+    </div>
+    <div class="im-storage-bar">
+      {Object.entries(categories.sets).slice(0, 5).map(([prefix, icons]) => {
+        const setInfo = iconSets[prefix] || { color: '#6366f1' };
+        const percentage = (icons.length / categories.all) * 100;
+        return (
+          <div
+            class="im-storage-segment"
+            style={`width: ${percentage}%; background: ${setInfo.color};`}
+            title={`${prefix}: ${icons.length}`}
+          />
+        );
+      })}
+      {categories.custom.length > 0 && (
+        <div
+          class="im-storage-segment"
+          style={`width: ${(categories.custom.length / categories.all) * 100}%; background: #22c55e;`}
+          title={`custom: ${categories.custom.length}`}
+        />
+      )}
+    </div>
+  </div>
+</aside>
+
+<script>
+  // Export category functionality
+  document.querySelectorAll('[data-export]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const category = (btn as HTMLElement).dataset.export;
+      const cards = document.querySelectorAll('.im-icon-card');
+      const icons: Record<string, string> = {};
+
+      cards.forEach(card => {
+        const name = (card as HTMLElement).dataset.name;
+        const svg = card.querySelector('.im-icon-preview')?.innerHTML;
+        if (name && svg) {
+          icons[name] = svg;
+        }
+      });
+
+      const count = Object.keys(icons).length;
+      if (count === 0) return;
+
+      const blob = new Blob([JSON.stringify(icons, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `icons-${category}-${count}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      window.showToast?.(`Exported ${count} icons from ${category}`, 'success');
+    });
+  });
+
+  // Export project icons (only the selected ones for the final build)
+  document.getElementById('im-export-project')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const res = await fetch('/api/project/export/');
+      if (!res.ok) throw new Error('Failed to export');
+
+      const icons = await res.json();
+      const count = Object.keys(icons).length;
+
+      if (count === 0) {
+        window.showToast?.('No icons in project. Add icons first!', 'error');
+        return;
+      }
+
+      const blob = new Blob([JSON.stringify(icons, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `project-icons-${count}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      window.showToast?.(`Exported ${count} project icons`, 'success');
+    } catch {
+      window.showToast?.('Failed to export project icons', 'error');
+    }
+  });
+
+  // Additional keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ignore if typing in input
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    if (e.key === 'a' || e.key === 'A') {
+      e.preventDefault();
+      document.getElementById('im-add-btn')?.click();
+    }
+
+    if (e.key === 'i' || e.key === 'I') {
+      e.preventDefault();
+      document.getElementById('im-import-btn')?.click();
+    }
+
+    // F key for favorites filter
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      window.location.href = '/?category=favorites';
+    }
+
+    // P key for project filter
+    if (e.key === 'p' || e.key === 'P') {
+      e.preventDefault();
+      window.location.href = '/?category=project';
+    }
+  });
+
+  // Update favorites count from localStorage
+  try {
+    const stored = localStorage.getItem('saged-icon-favorites');
+    const favorites = stored ? JSON.parse(stored) : [];
+    const countEl = document.getElementById('im-favorites-count');
+    if (countEl) {
+      countEl.textContent = `${favorites.length} icons`;
+    }
+  } catch {}
+
+  // Load project icons count
+  fetch('/api/project/')
+    .then(res => res.json())
+    .then(data => {
+      const countEl = document.getElementById('im-project-count');
+      if (countEl) {
+        countEl.textContent = `${data.count || 0} icons`;
+      }
+    })
+    .catch(() => {});
+</script>
+
+<style>
+  .im-sidebar {
+    width: 280px;
+    background: #12121a;
+    border-right: 1px solid #27272a;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 40;
+  }
+
+  .im-sidebar-header {
+    height: 75px;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid #27272a;
+    display: flex;
+    align-items: center;
+  }
+
+  .im-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .im-logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+  }
+
+  .im-logo-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4f4f5;
+  }
+
+  .im-logo-text span {
+    display: block;
+    color: #71717a;
+    font-weight: 400;
+    font-size: 0.75rem;
+  }
+
+  .im-sidebar-content {
+    flex: 1;
+    overflow-y: hidden;
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .im-sidebar-section {
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  /* Icon sets section should take remaining space and scroll */
+  .im-sidebar-section:has(.im-icon-sets-list) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .im-pinned-set {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+    border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+    margin-bottom: 0.25rem;
+    animation: slideDown 0.2s ease;
+  }
+
+  .im-pinned-set.visible {
+    display: flex;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .im-pinned-set .im-category-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .im-pinned-set .im-category-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .im-pinned-set .im-category-name {
+    font-size: 0.8125rem;
+  }
+
+  .im-pinned-set .im-category-meta {
+    font-size: 0.6875rem;
+  }
+
+  .im-pinned-scroll-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: none;
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+    flex-shrink: 0;
+  }
+
+  .im-pinned-scroll-btn:hover {
+    background: rgba(99, 102, 241, 0.4);
+    color: #fff;
+  }
+
+  .im-icon-sets-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .im-icon-sets-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .im-icon-sets-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .im-icon-sets-list::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 3px;
+  }
+
+  .im-icon-sets-list::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+  }
+
+  .im-shortcuts-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #27272a;
+  }
+
+  .im-sidebar-section-title {
+    padding: 0 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #71717a;
+  }
+
+  .im-category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    cursor: pointer;
+    transition: 150ms ease;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .im-category-item:hover {
+    background: #1a1a24;
+  }
+
+  .im-category-item.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-left-color: #6366f1;
+  }
+
+  .im-category-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+  }
+
+  .im-animated-icon svg {
+    animation: playPulse 1s ease-in-out infinite;
+  }
+
+  @keyframes playPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+  }
+
+  .im-category-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .im-category-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #f4f4f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .im-category-meta {
+    font-size: 0.75rem;
+    color: #71717a;
+  }
+
+  .im-back-link {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: #a1a1aa;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 150ms ease;
+  }
+
+  .im-back-link:hover {
+    color: #f4f4f5;
+  }
+
+  .im-category-export {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: #27272a;
+    color: #a1a1aa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+    opacity: 0;
+    margin-left: auto;
+  }
+
+  .im-category-item:hover .im-category-export,
+  .im-category-item.active .im-category-export {
+    opacity: 1;
+  }
+
+  .im-category-export:hover {
+    background: #6366f1;
+    color: white;
+  }
+
+  /* Project category special styling */
+  .im-project-category .im-category-export {
+    opacity: 1;
+  }
+
+  .im-project-export:hover {
+    background: #22c55e;
+  }
+
+  /* Keyboard shortcuts */
+  .im-shortcuts {
+    padding: 0 1.25rem;
+  }
+
+  .im-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    color: #71717a;
+  }
+
+  .im-shortcut kbd {
+    min-width: 24px;
+    padding: 0.125rem 0.375rem;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-family: inherit;
+    color: #a1a1aa;
+    text-align: center;
+  }
+
+  /* Footer */
+  .im-sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #27272a;
+    background: #09090b;
+  }
+
+  .im-storage-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .im-storage-label {
+    color: #71717a;
+  }
+
+  .im-storage-value {
+    color: #f4f4f5;
+    font-weight: 500;
+  }
+
+  .im-storage-bar {
+    height: 6px;
+    background: #27272a;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .im-storage-segment {
+    height: 100%;
+    transition: width 300ms ease;
+  }
+
+  .im-storage-segment:first-child {
+    border-radius: 3px 0 0 3px;
+  }
+
+  .im-storage-segment:last-child {
+    border-radius: 0 3px 3px 0;
+  }
+
+  @media (max-width: 1024px) {
+    .im-sidebar {
+      transform: translateX(-100%);
+    }
+  }
+</style>
+
+<script>
+  // Pinned set visibility logic
+  function initPinnedSet() {
+    const pinnedSet = document.getElementById('im-pinned-set');
+    const scrollContainer = document.getElementById('im-icon-sets-list');
+    const scrollBtn = document.getElementById('im-scroll-to-active');
+
+    if (!pinnedSet || !scrollContainer) return;
+
+    const activeItem = scrollContainer.querySelector('.im-category-item.active');
+    if (!activeItem) return;
+
+    function checkVisibility() {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const itemRect = activeItem.getBoundingClientRect();
+
+      // Check if active item is above the visible area
+      const isHidden = itemRect.bottom < containerRect.top || itemRect.top < containerRect.top;
+
+      pinnedSet.classList.toggle('visible', isHidden);
+    }
+
+    scrollContainer.addEventListener('scroll', checkVisibility);
+
+    // Scroll to active item when clicking the button
+    scrollBtn?.addEventListener('click', () => {
+      activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Initial check
+    checkVisibility();
+  }
+
+  // Run on page load
+  initPinnedSet();
+
+  // Re-run on navigation (for Astro's view transitions)
+  document.addEventListener('astro:page-load', initPinnedSet);
+</script>

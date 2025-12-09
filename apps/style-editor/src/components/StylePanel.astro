@@ -1,0 +1,720 @@
+---
+
+---
+
+<aside class="style-panel" id="sidebar-right">
+  <button class="collapse-btn collapse-btn-right" id="collapse-right" title="Contraer panel">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9,18 15,12 9,6"/>
+    </svg>
+  </button>
+  <div class="panel-inner">
+  <div class="panel-header">
+    <h2 class="panel-title">Estilos</h2>
+    <span class="panel-subtitle" id="selected-element">Ningún elemento seleccionado</span>
+  </div>
+
+  <div class="selected-element-info" id="element-info" style="display: none;">
+    <div class="element-tag">
+      <span class="tag-name" id="info-tag">div</span>
+      <span class="tag-id" id="info-id"></span>
+      <span class="tag-class" id="info-class"></span>
+    </div>
+    <div class="element-size" id="info-size">0 × 0</div>
+  </div>
+
+  <div class="panel-content">
+    <!-- Typography Section -->
+    <section class="style-section" data-section="typography">
+      <button class="section-header">
+        <span>Tipografía</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"/>
+        </svg>
+      </button>
+      <div class="section-content">
+        <div class="control-group">
+          <label class="control-label">Font Family</label>
+          <select class="control-select" data-property="font-family">
+            <option value="Inter">Inter</option>
+            <option value="system-ui">System UI</option>
+            <option value="Georgia">Georgia</option>
+            <option value="monospace">Monospace</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Font Size</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="font-size" value="16" min="8" max="120" />
+            <span class="control-unit">px</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Font Weight</label>
+          <input type="range" class="control-range" data-property="font-weight" min="100" max="900" step="100" value="400" />
+          <span class="range-value">400</span>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Line Height</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="line-height" value="1.5" min="0.5" max="3" step="0.1" />
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Letter Spacing</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="letter-spacing" value="0" min="-5" max="20" step="0.5" />
+            <span class="control-unit">px</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Colors Section -->
+    <section class="style-section" data-section="colors">
+      <button class="section-header">
+        <span>Colores</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"/>
+        </svg>
+      </button>
+      <div class="section-content">
+        <div class="control-group">
+          <label class="control-label">Color</label>
+          <div class="color-control">
+            <input type="color" class="control-color" data-property="color" value="#000000" />
+            <input type="text" class="control-input color-text" data-property="color" value="#000000" />
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Background</label>
+          <div class="color-control">
+            <input type="color" class="control-color" data-property="background-color" value="#ffffff" />
+            <input type="text" class="control-input color-text" data-property="background-color" value="#ffffff" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spacing Section -->
+    <section class="style-section" data-section="spacing">
+      <button class="section-header">
+        <span>Espaciado</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"/>
+        </svg>
+      </button>
+      <div class="section-content">
+        <div class="control-group">
+          <label class="control-label">Padding</label>
+          <div class="spacing-grid">
+            <input type="number" class="control-input small" data-property="padding-top" placeholder="↑" />
+            <input type="number" class="control-input small" data-property="padding-right" placeholder="→" />
+            <input type="number" class="control-input small" data-property="padding-bottom" placeholder="↓" />
+            <input type="number" class="control-input small" data-property="padding-left" placeholder="←" />
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Margin</label>
+          <div class="spacing-grid">
+            <input type="number" class="control-input small" data-property="margin-top" placeholder="↑" />
+            <input type="number" class="control-input small" data-property="margin-right" placeholder="→" />
+            <input type="number" class="control-input small" data-property="margin-bottom" placeholder="↓" />
+            <input type="number" class="control-input small" data-property="margin-left" placeholder="←" />
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Gap</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="gap" value="0" min="0" max="100" />
+            <span class="control-unit">px</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Border Section -->
+    <section class="style-section" data-section="border">
+      <button class="section-header">
+        <span>Bordes</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"/>
+        </svg>
+      </button>
+      <div class="section-content">
+        <div class="control-group">
+          <label class="control-label">Border Radius</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="border-radius" value="0" min="0" max="100" />
+            <span class="control-unit">px</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Border Width</label>
+          <div class="control-input-group">
+            <input type="number" class="control-input" data-property="border-width" value="0" min="0" max="20" />
+            <span class="control-unit">px</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Border Color</label>
+          <div class="color-control">
+            <input type="color" class="control-color" data-property="border-color" value="#e5e7eb" />
+            <input type="text" class="control-input color-text" data-property="border-color" value="#e5e7eb" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Effects Section -->
+    <section class="style-section" data-section="effects">
+      <button class="section-header">
+        <span>Efectos</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"/>
+        </svg>
+      </button>
+      <div class="section-content">
+        <div class="control-group">
+          <label class="control-label">Opacity</label>
+          <input type="range" class="control-range" data-property="opacity" min="0" max="1" step="0.05" value="1" />
+          <span class="range-value">100%</span>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Box Shadow</label>
+          <select class="control-select" data-property="box-shadow">
+            <option value="none">Ninguna</option>
+            <option value="0 1px 2px rgba(0,0,0,0.1)">Pequeña</option>
+            <option value="0 4px 6px rgba(0,0,0,0.1)">Mediana</option>
+            <option value="0 10px 25px rgba(0,0,0,0.15)">Grande</option>
+          </select>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Code Output -->
+  <div class="code-output">
+    <div class="code-header">
+      <span>CSS Output</span>
+      <button class="copy-btn" id="copy-css" title="Copiar CSS">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+    </div>
+    <pre class="code-block" id="css-output"><code>/* Selecciona un elemento */</code></pre>
+  </div>
+  </div>
+</aside>
+
+<style>
+  .style-panel {
+    position: relative;
+    width: var(--panel-width);
+    min-width: var(--panel-width);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+
+  .style-panel.collapsed {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .panel-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+  }
+
+  .style-panel.collapsed .panel-inner {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .collapse-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 40px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    z-index: 10;
+  }
+
+  .collapse-btn:hover {
+    background: var(--accent-muted);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .collapse-btn-right {
+    left: -10px;
+    border-radius: 6px 0 0 6px;
+  }
+
+  .style-panel.collapsed .collapse-btn-right svg {
+    transform: rotate(180deg);
+  }
+
+  .panel-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .panel-subtitle {
+    font-size: 12px;
+    color: var(--text-subtle);
+  }
+
+  .selected-element-info {
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .element-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .tag-name {
+    color: #f472b6;
+    font-weight: 500;
+  }
+
+  .tag-id {
+    color: #fbbf24;
+  }
+
+  .tag-class {
+    color: #a78bfa;
+  }
+
+  .element-size {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #6ee7b7;
+    background: rgba(110, 231, 183, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .style-section {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .section-header:hover {
+    background: var(--surface-elevated);
+  }
+
+  .chevron {
+    color: var(--text-subtle);
+    transition: transform 0.2s ease;
+  }
+
+  .style-section.collapsed .chevron {
+    transform: rotate(-90deg);
+  }
+
+  .style-section.collapsed .section-content {
+    display: none;
+  }
+
+  .section-content {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .control-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .control-input,
+  .control-select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    transition: border-color 0.15s ease;
+  }
+
+  .control-input:focus,
+  .control-select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .control-input.small {
+    padding: 6px 8px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .control-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .control-unit {
+    font-size: 12px;
+    color: var(--text-subtle);
+    min-width: 20px;
+  }
+
+  .control-range {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+
+  .range-value {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .color-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .control-color {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .color-text {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .spacing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  /* Code Output */
+  .code-output {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .copy-btn:hover {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .code-block {
+    padding: 12px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+</style>
+
+<script>
+  // Colapsar panel
+  document.getElementById('collapse-right')?.addEventListener('click', () => {
+    const panel = document.getElementById('sidebar-right');
+    panel?.classList.toggle('collapsed');
+    
+    // Guardar estado
+    localStorage.setItem('style-editor:sidebar-right', panel?.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+  });
+
+  // Restaurar estado al cargar
+  if (localStorage.getItem('style-editor:sidebar-right') === 'collapsed') {
+    document.getElementById('sidebar-right')?.classList.add('collapsed');
+  }
+
+  // Elementos del panel de info
+  const elementInfo = document.getElementById('element-info');
+  const infoTag = document.getElementById('info-tag');
+  const infoId = document.getElementById('info-id');
+  const infoClass = document.getElementById('info-class');
+  const infoSize = document.getElementById('info-size');
+  const selectedElementLabel = document.getElementById('selected-element');
+
+  // Escuchar selección de elementos
+  document.addEventListener('style-editor:element-selected', ((e: CustomEvent) => {
+    const { tagName, id, className, rect, styles } = e.detail || {};
+    
+    if (tagName) {
+      // Mostrar info del elemento
+      if (elementInfo) elementInfo.style.display = 'flex';
+      if (infoTag) infoTag.textContent = tagName.toLowerCase();
+      if (infoId) infoId.textContent = id ? `#${id}` : '';
+      if (infoClass) {
+        const firstClass = className?.split(' ')[0] || '';
+        infoClass.textContent = firstClass ? `.${firstClass}` : '';
+      }
+      if (infoSize && rect) {
+        infoSize.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+      }
+      if (selectedElementLabel) {
+        selectedElementLabel.textContent = `<${tagName.toLowerCase()}>`;
+      }
+
+      // Actualizar valores en los controles
+      if (styles) {
+        updateControlValues(styles);
+      }
+    }
+  }) as EventListener);
+
+  // Actualizar cuando se redimensiona
+  document.addEventListener('style-editor:element-resized', ((e: CustomEvent) => {
+    const { rect, styles } = e.detail || {};
+    if (infoSize && rect) {
+      infoSize.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+    }
+    if (styles) {
+      updateControlValues(styles);
+    }
+  }) as EventListener);
+
+  // Actualizar valores de los controles con los estilos del elemento
+  function updateControlValues(styles: Record<string, string>) {
+    // Font size
+    const fontSizeInput = document.querySelector('[data-property="font-size"]') as HTMLInputElement;
+    if (fontSizeInput && styles.fontSize) {
+      fontSizeInput.value = parseFloat(styles.fontSize).toString();
+    }
+
+    // Font weight
+    const fontWeightInput = document.querySelector('[data-property="font-weight"]') as HTMLInputElement;
+    if (fontWeightInput && styles.fontWeight) {
+      fontWeightInput.value = styles.fontWeight;
+      const rangeValue = fontWeightInput.nextElementSibling;
+      if (rangeValue) rangeValue.textContent = styles.fontWeight;
+    }
+
+    // Color
+    const colorInput = document.querySelector('input[type="color"][data-property="color"]') as HTMLInputElement;
+    const colorText = document.querySelector('input[type="text"][data-property="color"]') as HTMLInputElement;
+    if (styles.color) {
+      const hex = rgbToHex(styles.color);
+      if (colorInput) colorInput.value = hex;
+      if (colorText) colorText.value = hex;
+    }
+
+    // Background
+    const bgInput = document.querySelector('input[type="color"][data-property="background-color"]') as HTMLInputElement;
+    const bgText = document.querySelector('input[type="text"][data-property="background-color"]') as HTMLInputElement;
+    if (styles.backgroundColor && styles.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+      const hex = rgbToHex(styles.backgroundColor);
+      if (bgInput) bgInput.value = hex;
+      if (bgText) bgText.value = hex;
+    }
+
+    // Border radius
+    const borderRadiusInput = document.querySelector('[data-property="border-radius"]') as HTMLInputElement;
+    if (borderRadiusInput && styles.borderRadius) {
+      borderRadiusInput.value = parseFloat(styles.borderRadius).toString();
+    }
+  }
+
+  // Convertir rgb a hex
+  function rgbToHex(rgb: string): string {
+    const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!match) return '#000000';
+    const r = parseInt(match[1]).toString(16).padStart(2, '0');
+    const g = parseInt(match[2]).toString(16).padStart(2, '0');
+    const b = parseInt(match[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  }
+
+  // Toggle sections
+  document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.closest('.style-section')?.classList.toggle('collapsed');
+    });
+  });
+
+  // Style changes
+  const cssOutput = document.getElementById('css-output');
+  let currentStyles: Record<string, string> = {};
+
+  function updateCSSOutput() {
+    if (!cssOutput) return;
+    
+    const entries = Object.entries(currentStyles).filter(([_, v]) => v);
+    if (entries.length === 0) {
+      cssOutput.innerHTML = '<code>/* Selecciona un elemento */</code>';
+      return;
+    }
+
+    const css = entries.map(([prop, value]) => `  ${prop}: ${value};`).join('\n');
+    cssOutput.innerHTML = `<code>.element {\n${css}\n}</code>`;
+  }
+
+  // Input change handlers
+  document.querySelectorAll('[data-property]').forEach(input => {
+    const handleChange = () => {
+      const property = (input as HTMLElement).dataset.property!;
+      let value = (input as HTMLInputElement).value;
+      
+      // Add unit for numeric properties
+      if ((input as HTMLInputElement).type === 'number' && !['opacity', 'line-height', 'font-weight'].includes(property)) {
+        value += 'px';
+      }
+
+      currentStyles[property] = value;
+      updateCSSOutput();
+
+      // Emit change event
+      document.dispatchEvent(new CustomEvent('style-editor:style-change', {
+        detail: { property, value }
+      }));
+    };
+
+    input.addEventListener('input', handleChange);
+    input.addEventListener('change', handleChange);
+  });
+
+  // Range value display
+  document.querySelectorAll('.control-range').forEach(range => {
+    const valueDisplay = range.nextElementSibling;
+    range.addEventListener('input', () => {
+      if (valueDisplay?.classList.contains('range-value')) {
+        const prop = (range as HTMLElement).dataset.property;
+        let val = (range as HTMLInputElement).value;
+        if (prop === 'opacity') {
+          val = Math.round(parseFloat(val) * 100) + '%';
+        }
+        valueDisplay.textContent = val;
+      }
+    });
+  });
+
+  // Copy CSS
+  document.getElementById('copy-css')?.addEventListener('click', () => {
+    const code = cssOutput?.textContent || '';
+    navigator.clipboard.writeText(code);
+  });
+
+  // Color input sync
+  document.querySelectorAll('.color-control').forEach(control => {
+    const colorInput = control.querySelector('input[type="color"]') as HTMLInputElement;
+    const textInput = control.querySelector('input[type="text"]') as HTMLInputElement;
+
+    colorInput?.addEventListener('input', () => {
+      if (textInput) textInput.value = colorInput.value;
+    });
+
+    textInput?.addEventListener('input', () => {
+      if (colorInput && /^#[0-9A-Fa-f]{6}$/.test(textInput.value)) {
+        colorInput.value = textInput.value;
+      }
+    });
+  });
+</script>

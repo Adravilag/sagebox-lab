@@ -1,0 +1,452 @@
+---
+
+---
+
+<aside class="sidebar" id="sidebar-left">
+  <button class="collapse-btn collapse-btn-left" id="collapse-left" title="Contraer panel">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+  </button>
+  <div class="sidebar-content">
+  <div class="sidebar-section">
+    <h3 class="section-title">Proyectos recientes</h3>
+    <div class="project-list" id="project-list">
+      <button class="project-item active" data-url="http://localhost:4200">
+        <span class="project-icon">🅰️</span>
+        <div class="project-info">
+          <span class="project-name">Angular App</span>
+          <span class="project-url">localhost:4200</span>
+        </div>
+      </button>
+      <button class="project-item" data-url="http://localhost:3000">
+        <span class="project-icon">⚛️</span>
+        <div class="project-info">
+          <span class="project-name">React App</span>
+          <span class="project-url">localhost:3000</span>
+        </div>
+      </button>
+      <button class="project-item" data-url="http://localhost:5173">
+        <span class="project-icon">⚡</span>
+        <div class="project-info">
+          <span class="project-name">Vite App</span>
+          <span class="project-url">localhost:5173</span>
+        </div>
+      </button>
+      <button class="project-item" data-url="http://localhost:4321">
+        <span class="project-icon">🚀</span>
+        <div class="project-info">
+          <span class="project-name">Astro App</span>
+          <span class="project-url">localhost:4321</span>
+        </div>
+      </button>
+    </div>
+    <button class="add-project-btn" id="add-project">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span>Añadir proyecto</span>
+    </button>
+  </div>
+
+  <div class="sidebar-section">
+    <h3 class="section-title">Tokens de diseño</h3>
+    <div class="token-categories">
+      <button class="token-category" data-category="colors">
+        <span class="category-dot" style="background: linear-gradient(135deg, #6366f1, #22c55e)"></span>
+        <span>Colores</span>
+        <span class="category-count">12</span>
+      </button>
+      <button class="token-category" data-category="typography">
+        <span class="category-dot" style="background: var(--text)"></span>
+        <span>Tipografía</span>
+        <span class="category-count">8</span>
+      </button>
+      <button class="token-category" data-category="spacing">
+        <span class="category-dot" style="background: var(--accent)"></span>
+        <span>Espaciado</span>
+        <span class="category-count">10</span>
+      </button>
+      <button class="token-category" data-category="borders">
+        <span class="category-dot" style="background: var(--border)"></span>
+        <span>Bordes</span>
+        <span class="category-count">5</span>
+      </button>
+      <button class="token-category" data-category="shadows">
+        <span class="category-dot" style="background: #000"></span>
+        <span>Sombras</span>
+        <span class="category-count">4</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-section flex-grow">
+    <h3 class="section-title">
+      Elementos seleccionados
+      <span class="section-badge" id="selected-count">0</span>
+    </h3>
+    <div class="layers-tree" id="layers-tree">
+      <p class="empty-state">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;">
+          <path d="M15 15l-2 5L9 9l11 4-5 2z"/>
+          <path d="M14 14l5 5"/>
+        </svg>
+        Activa el modo inspección<br/>y haz click en un elemento
+      </p>
+    </div>
+  </div>
+  </div>
+</aside>
+
+<style>
+  .sidebar {
+    position: relative;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+
+  .sidebar.collapsed {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .sidebar-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+  }
+
+  .sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .collapse-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 40px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    z-index: 10;
+  }
+
+  .collapse-btn:hover {
+    background: var(--accent-muted);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .collapse-btn-left {
+    right: -10px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .sidebar.collapsed .collapse-btn-left svg {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-section.flex-grow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-subtle);
+    margin-bottom: 12px;
+  }
+
+  .section-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--surface-elevated);
+    border-radius: 10px;
+    color: var(--text-muted);
+  }
+
+  .project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .project-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    text-align: left;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .project-item:hover {
+    background: var(--surface-elevated);
+    color: var(--text);
+  }
+
+  .project-item.active {
+    background: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .project-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+  }
+
+  .project-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .project-name {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .project-url {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-subtle);
+  }
+
+  .add-project-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .add-project-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-muted);
+  }
+
+  .token-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .token-category {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .token-category:hover {
+    background: var(--surface-elevated);
+    color: var(--text);
+  }
+
+  .category-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .category-count {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-subtle);
+  }
+
+  .layers-tree {
+    flex: 1;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.6;
+    padding: 24px;
+  }
+</style>
+
+<script>
+  // Selección de proyecto
+  document.querySelectorAll('.project-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.project-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      
+      const url = (item as HTMLElement).dataset.url;
+      if (url) {
+        // Update URL input
+        const urlInput = document.getElementById('preview-url') as HTMLInputElement;
+        if (urlInput) {
+          urlInput.value = url;
+        }
+        
+        // Load in iframe
+        const iframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+        if (iframe) {
+          iframe.src = url;
+        }
+
+        // Update connection status
+        const status = document.getElementById('connection-status');
+        if (status) {
+          status.className = 'connection-status';
+          status.querySelector('.status-text')!.textContent = 'Conectando...';
+        }
+      }
+    });
+  });
+
+  // Añadir proyecto
+  document.getElementById('add-project')?.addEventListener('click', () => {
+    const url = prompt('URL del proyecto:', 'http://localhost:');
+    if (url) {
+      const name = prompt('Nombre del proyecto:', 'Mi Proyecto');
+      if (name) {
+        // Aquí podrías guardar en localStorage y crear el elemento
+        const list = document.getElementById('project-list');
+        if (list) {
+          const btn = document.createElement('button');
+          btn.className = 'project-item';
+          btn.dataset.url = url;
+          btn.innerHTML = `
+            <span class="project-icon">📦</span>
+            <div class="project-info">
+              <span class="project-name">${name}</span>
+              <span class="project-url">${url.replace('http://', '')}</span>
+            </div>
+          `;
+          list.appendChild(btn);
+          
+          // Add click handler
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.project-item').forEach(i => i.classList.remove('active'));
+            btn.classList.add('active');
+            const urlInput = document.getElementById('preview-url') as HTMLInputElement;
+            if (urlInput) urlInput.value = url;
+            const iframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+            if (iframe) iframe.src = url;
+          });
+        }
+      }
+    }
+  });
+
+  // Selección de categoría de tokens
+  document.querySelectorAll('.token-category').forEach(cat => {
+    cat.addEventListener('click', () => {
+      const category = (cat as HTMLElement).dataset.category;
+      document.dispatchEvent(new CustomEvent('style-editor:token-category-select', {
+        detail: { category }
+      }));
+    });
+  });
+
+  // Colapsar sidebar
+  document.getElementById('collapse-left')?.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar-left');
+    sidebar?.classList.toggle('collapsed');
+    
+    // Guardar estado
+    localStorage.setItem('style-editor:sidebar-left', sidebar?.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+  });
+
+  // Restaurar estado al cargar
+  if (localStorage.getItem('style-editor:sidebar-left') === 'collapsed') {
+    document.getElementById('sidebar-left')?.classList.add('collapsed');
+  }
+
+  // Escuchar elementos seleccionados
+  document.addEventListener('style-editor:element-selected', ((e: CustomEvent) => {
+    const layersTree = document.getElementById('layers-tree');
+    const selectedCount = document.getElementById('selected-count');
+    
+    if (layersTree && e.detail) {
+      const { tagName, className, id } = e.detail;
+      
+      layersTree.innerHTML = `
+        <div class="layer-item">
+          <span class="layer-tag">${tagName.toLowerCase()}</span>
+          ${id ? `<span class="layer-id">#${id}</span>` : ''}
+          ${className ? `<span class="layer-class">.${className.split(' ')[0]}</span>` : ''}
+        </div>
+      `;
+      
+      if (selectedCount) {
+        selectedCount.textContent = '1';
+      }
+    }
+  }) as EventListener);
+</script>

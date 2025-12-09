@@ -1,0 +1,630 @@
+---
+/**
+ * Modo Blank - Editor minimalista a pantalla completa
+ * Sin sidebars, header ni footer - solo el iframe y controles flotantes
+ */
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Style Editor - Modo Blank</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <!-- Floating toolbar -->
+  <div class="floating-toolbar" id="toolbar">
+    <div class="toolbar-section">
+      <button class="tool-btn" id="btn-back" title="Volver al editor completo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" data-viewport="mobile" title="Móvil (375px)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+      </button>
+      <button class="tool-btn" data-viewport="tablet" title="Tablet (768px)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+      </button>
+      <button class="tool-btn active" data-viewport="desktop" title="Desktop (100%)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="toolbar-section">
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" id="zoom-out" title="Alejar">−</button>
+      <span class="zoom-display" id="zoom-value">100%</span>
+      <button class="tool-btn" id="zoom-in" title="Acercar">+</button>
+    </div>
+
+    <div class="toolbar-section">
+      <div class="toolbar-divider"></div>
+      <label class="tool-toggle" title="Modo inspección">
+        <input type="checkbox" id="inspect-mode" checked />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+      </label>
+    </div>
+
+    <div class="toolbar-section url-section">
+      <div class="toolbar-divider"></div>
+      <input type="text" class="url-input" id="preview-url" value="http://localhost:4200" />
+      <button class="tool-btn" id="btn-reload" title="Recargar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M21 21v-5h-5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Minimize button -->
+    <button class="tool-btn minimize-btn" id="btn-minimize" title="Ocultar barra (H)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14"/>
+      </svg>
+    </button>
+
+    <!-- Drag handle -->
+    <div class="drag-handle" id="drag-handle" title="Arrastrar para mover">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>
+        <circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Show toolbar button (when minimized) -->
+  <button class="show-toolbar-btn" id="btn-show-toolbar" title="Mostrar barra (H)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+
+  <!-- Connection status -->
+  <div class="floating-status" id="connection-status">
+    <span class="status-dot"></span>
+    <span class="status-text">Conectando...</span>
+  </div>
+
+  <!-- Fullscreen preview -->
+  <div class="preview-area" id="preview-area">
+    <div class="preview-frame" id="preview-frame" data-viewport="desktop">
+      <iframe 
+        id="preview-iframe"
+        src="http://localhost:4200"
+        title="Preview"
+      ></iframe>
+    </div>
+  </div>
+
+  <!-- Dimensions display -->
+  <div class="dimensions-display" id="dimensions">
+    <span id="dim-width">--</span> × <span id="dim-height">--</span>
+  </div>
+</body>
+</html>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #141416;
+    --bg-elevated: #1a1a1d;
+    --border-color: #2a2a2d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a5;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --error: #ef4444;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Floating Toolbar - Compacto */
+  .floating-toolbar {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(26, 26, 29, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 4px 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    cursor: move;
+    user-select: none;
+  }
+
+  .toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    margin: 0 6px;
+  }
+
+  .tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+  }
+
+  .tool-btn.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .tool-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+
+  .tool-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .tool-toggle input {
+    display: none;
+  }
+
+  .tool-toggle:has(input:checked) {
+    background: var(--accent);
+    color: white;
+  }
+
+  .zoom-display {
+    min-width: 50px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .url-section {
+    flex: 0 0 auto;
+  }
+
+  .url-input {
+    width: 200px;
+    height: 32px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0 10px;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  .url-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    cursor: grab;
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
+  /* Floating Status */
+  .floating-status {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+    z-index: 1000;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warning);
+    animation: pulse 2s infinite;
+  }
+
+  .floating-status.connected .status-dot {
+    background: var(--success);
+    animation: none;
+  }
+
+  .floating-status.error .status-dot {
+    background: var(--error);
+    animation: none;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Preview Area - Maximizado */
+  .preview-area {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+  }
+
+  .preview-frame {
+    width: 100%;
+    height: 100%;
+    background: white;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .preview-frame[data-viewport="mobile"] {
+    width: 375px;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px var(--border-color);
+    margin: 16px;
+    height: calc(100% - 32px);
+    align-self: center;
+  }
+
+  .preview-frame[data-viewport="tablet"] {
+    width: 768px;
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px var(--border-color);
+    margin: 16px;
+    height: calc(100% - 32px);
+    align-self: center;
+  }
+
+  .preview-frame[data-viewport="desktop"] {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .preview-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Dimensions Display */
+  .dimensions-display {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(24, 24, 27, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-family: monospace;
+    color: var(--text-secondary);
+    z-index: 1000;
+  }
+
+  /* Minimize button */
+  .minimize-btn {
+    margin-left: 4px;
+  }
+
+  /* Show toolbar button (when hidden) */
+  .show-toolbar-btn {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    z-index: 10001;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .show-toolbar-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .toolbar-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+  }
+
+  .floating-toolbar {
+    transition: opacity 0.2s, transform 0.2s;
+  }
+</style>
+
+<script>
+  // DOM Elements
+  const toolbar = document.getElementById('toolbar') as HTMLElement;
+  const iframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+  const previewFrame = document.getElementById('preview-frame') as HTMLElement;
+  const urlInput = document.getElementById('preview-url') as HTMLInputElement;
+  const zoomValue = document.getElementById('zoom-value') as HTMLElement;
+  const connectionStatus = document.getElementById('connection-status') as HTMLElement;
+  const dimWidth = document.getElementById('dim-width') as HTMLElement;
+  const dimHeight = document.getElementById('dim-height') as HTMLElement;
+
+  let currentZoom = 100;
+  let bridgeReady = false;
+
+  // Leer URL del parámetro de query string
+  const params = new URLSearchParams(window.location.search);
+  const initialUrl = params.get('url') || 'http://localhost:4200';
+  
+  // Configurar iframe y input con la URL inicial
+  iframe.src = initialUrl;
+  urlInput.value = initialUrl;
+
+  // Draggable toolbar
+  let isDragging = false;
+  let dragOffset = { x: 0, y: 0 };
+
+  toolbar.addEventListener('mousedown', (e) => {
+    if ((e.target as HTMLElement).closest('button, input, label')) return;
+    isDragging = true;
+    const rect = toolbar.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    toolbar.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.clientX - dragOffset.x;
+    const y = e.clientY - dragOffset.y;
+    toolbar.style.left = x + 'px';
+    toolbar.style.top = y + 'px';
+    toolbar.style.transform = 'none';
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    toolbar.style.cursor = 'move';
+  });
+
+  // Back button - volver al editor con la URL actual
+  document.getElementById('btn-back')?.addEventListener('click', () => {
+    const currentUrl = urlInput.value || iframe.src;
+    window.location.href = '/?url=' + encodeURIComponent(currentUrl);
+  });
+
+  // Viewport buttons
+  document.querySelectorAll('[data-viewport]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const viewport = (btn as HTMLElement).dataset.viewport;
+      document.querySelectorAll('[data-viewport]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      previewFrame.dataset.viewport = viewport;
+      updateDimensions();
+    });
+  });
+
+  // Zoom controls
+  document.getElementById('zoom-out')?.addEventListener('click', () => {
+    if (currentZoom > 25) {
+      currentZoom -= 10;
+      applyZoom();
+    }
+  });
+
+  document.getElementById('zoom-in')?.addEventListener('click', () => {
+    if (currentZoom < 200) {
+      currentZoom += 10;
+      applyZoom();
+    }
+  });
+
+  function applyZoom() {
+    zoomValue.textContent = currentZoom + '%';
+    previewFrame.style.transform = `scale(${currentZoom / 100})`;
+    previewFrame.style.transformOrigin = 'center center';
+  }
+
+  // URL input
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      loadUrl(urlInput.value);
+    }
+  });
+
+  document.getElementById('btn-reload')?.addEventListener('click', () => {
+    loadUrl(urlInput.value);
+  });
+
+  function loadUrl(url: string) {
+    if (!url.startsWith('http')) {
+      url = 'http://' + url;
+    }
+    iframe.src = url;
+    urlInput.value = url;
+  }
+
+  // Inspect mode
+  const inspectCheckbox = document.getElementById('inspect-mode') as HTMLInputElement;
+  inspectCheckbox?.addEventListener('change', () => {
+    if (bridgeReady) {
+      iframe.contentWindow?.postMessage({
+        type: 'toggle-inspect',
+        enabled: inspectCheckbox.checked
+      }, '*');
+    }
+  });
+
+  // Message handler
+  window.addEventListener('message', (event) => {
+    const { type } = event.data;
+    
+    switch (type) {
+      case 'bridge-ready':
+        bridgeReady = true;
+        connectionStatus.classList.add('connected');
+        connectionStatus.querySelector('.status-text')!.textContent = 'Conectado';
+        
+        // Enable inspect mode by default and tell bridge to show inline panel
+        iframe.contentWindow?.postMessage({
+          type: 'toggle-inspect',
+          enabled: true
+        }, '*');
+        iframe.contentWindow?.postMessage({
+          type: 'enable-inline-panel',
+          enabled: true
+        }, '*');
+        break;
+    }
+  });
+
+  // Update dimensions display
+  function updateDimensions() {
+    const rect = previewFrame.getBoundingClientRect();
+    dimWidth.textContent = Math.round(rect.width) + '';
+    dimHeight.textContent = Math.round(rect.height) + '';
+  }
+
+  // Initialize
+  iframe.addEventListener('load', () => {
+    updateDimensions();
+    bridgeReady = false;
+    connectionStatus.classList.remove('connected', 'error');
+    connectionStatus.querySelector('.status-text')!.textContent = 'Conectando...';
+    
+    // Check if bridge is ready
+    setTimeout(() => {
+      if (!bridgeReady) {
+        connectionStatus.classList.add('error');
+        connectionStatus.querySelector('.status-text')!.textContent = 'Bridge no detectado';
+      }
+    }, 3000);
+  });
+
+  window.addEventListener('resize', updateDimensions);
+  updateDimensions();
+
+  // Minimize/Show toolbar
+  const btnMinimize = document.getElementById('btn-minimize');
+  const btnShowToolbar = document.getElementById('btn-show-toolbar');
+  let toolbarHidden = false;
+
+  function toggleToolbar() {
+    toolbarHidden = !toolbarHidden;
+    if (toolbarHidden) {
+      toolbar.classList.add('toolbar-hidden');
+      btnShowToolbar!.style.display = 'flex';
+    } else {
+      toolbar.classList.remove('toolbar-hidden');
+      btnShowToolbar!.style.display = 'none';
+    }
+  }
+
+  btnMinimize?.addEventListener('click', toggleToolbar);
+  btnShowToolbar?.addEventListener('click', toggleToolbar);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+I to toggle inspect
+    if (e.ctrlKey && e.key === 'i') {
+      e.preventDefault();
+      inspectCheckbox.checked = !inspectCheckbox.checked;
+      inspectCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // H to toggle toolbar visibility
+    if (e.key === 'h' || e.key === 'H') {
+      // Don't trigger if typing in input
+      if ((e.target as HTMLElement).tagName === 'INPUT') return;
+      e.preventDefault();
+      toggleToolbar();
+    }
+  });
+</script>

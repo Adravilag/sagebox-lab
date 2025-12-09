@@ -1,0 +1,19 @@
+{
+  "name": "@sage-box/lab-style-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4569",
+    "build": "astro build",
+    "preview": "astro preview --port 4569",
+    "clean": "rm -rf dist .astro"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3"
+  }
+}

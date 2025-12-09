@@ -1,0 +1,75 @@
+{
+  "name": "@sage-box/lab",
+  "version": "0.1.0",
+  "description": "SageBox Lab - Development tools for SageBox UI components",
+  "type": "module",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "sagebox-lab": "./bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js"
+    },
+    "./icon-manager": {
+      "import": "./apps/icon-manager/dist/index.html"
+    },
+    "./style-editor": {
+      "import": "./apps/style-editor/dist/index.html"
+    },
+    "./event-editor": {
+      "import": "./apps/event-editor/dist/index.html"
+    }
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:apps": "turbo run build --filter='./apps/*'",
+    "preview": "turbo run preview",
+    "lint": "eslint .",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "icon-manager": "npm run dev --workspace=apps/icon-manager",
+    "style-editor": "npm run dev --workspace=apps/style-editor",
+    "event-editor": "npm run dev --workspace=apps/event-editor"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Adravilag/sagebox-lab.git"
+  },
+  "keywords": [
+    "sagebox",
+    "devtools",
+    "lab",
+    "icon-manager",
+    "style-editor",
+    "web-components"
+  ],
+  "author": "Adrian Dávila Guerra",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Adravilag/sagebox-lab/issues"
+  },
+  "homepage": "https://github.com/Adravilag/sagebox-lab#readme",
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "open": "^10.0.0",
+    "sirv": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "apps/*/dist/"
+  ]
+}

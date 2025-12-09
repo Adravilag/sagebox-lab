@@ -1,0 +1,657 @@
+---
+import { getLocale, t, SUPPORTED_LOCALES, LOCALE_FLAGS, LOCALE_NAMES, LOCALE_COUNTRY_CODES, type Locale } from '../lib/i18n';
+
+interface Props {
+  totalCount: number;
+  filteredCount: number;
+  viewMode?: 'grid' | 'list';
+  sortBy?: 'name' | 'category' | 'recent';
+  locale?: Locale;
+}
+
+const {
+  totalCount,
+  filteredCount,
+  viewMode = 'grid',
+  sortBy = 'name',
+  locale = 'en'
+} = Astro.props;
+
+const i18n = (key: Parameters<typeof t>[0]) => t(key, locale);
+---
+
+<!-- Drop Zone Overlay -->
+<div class="im-drop-zone" id="im-drop-zone">
+  <div class="im-drop-zone-content">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="17,8 12,3 7,8"></polyline>
+      <line x1="12" y1="3" x2="12" y2="15"></line>
+    </svg>
+    <h3>{i18n('drop.title')}</h3>
+    <p>{i18n('drop.subtitle')}</p>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="im-preview-modal" id="im-preview-modal">
+  <div class="im-preview-modal-content">
+    <div class="im-preview-icon" id="im-preview-icon"></div>
+    <div class="im-preview-info">
+      <h3 id="im-preview-name">icon-name</h3>
+      <div class="im-preview-meta">
+        <span id="im-preview-category">custom</span>
+        <span id="im-preview-size">24x24</span>
+      </div>
+      <div class="im-preview-actions">
+        <button class="im-btn im-btn-sm" id="im-preview-copy-svg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          {i18n('action.copy_svg')}
+        </button>
+        <button class="im-btn im-btn-sm" id="im-preview-copy-name">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+          </svg>
+          {i18n('action.copy_name')}
+        </button>
+        <button class="im-btn im-btn-sm im-btn-fav" id="im-preview-toggle-fav">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          <span id="im-preview-fav-text" data-fav={i18n('action.favorited')} data-unfav={i18n('action.favorite')}>{i18n('action.favorite')}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="im-header">
+  <div class="im-search">
+    <svg class="im-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+    </svg>
+    <input
+      type="text"
+      id="im-search-input"
+      placeholder={i18n('header.search.placeholder')}
+      autocomplete="off"
+    />
+    <kbd class="im-search-kbd">/</kbd>
+  </div>
+
+  <!-- Language Selector -->
+  <div class="im-lang-selector">
+    <button class="im-lang-current" id="im-lang-toggle" type="button" aria-expanded="false" aria-haspopup="true" title={i18n('header.language')}>
+      <span class="im-lang-flag">
+        <img src={`https://hatscripts.github.io/circle-flags/flags/${LOCALE_COUNTRY_CODES[locale]}.svg`} alt="" width="20" height="20" />
+      </span>
+      <span class="im-lang-code">{LOCALE_FLAGS[locale]}</span>
+      <svg class="im-lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+    <div class="im-lang-dropdown" id="im-lang-dropdown">
+      {SUPPORTED_LOCALES.map((lang) => {
+        const url = new URL(Astro.url);
+        url.searchParams.set('lang', lang);
+        return (
+          <a
+            href={url.pathname + url.search}
+            class:list={["im-lang-option", { active: locale === lang }]}
+          >
+            <span class="im-lang-flag">
+              <img src={`https://hatscripts.github.io/circle-flags/flags/${LOCALE_COUNTRY_CODES[lang]}.svg`} alt="" width="18" height="18" />
+            </span>
+            <span class="im-lang-name">{LOCALE_NAMES[lang]}</span>
+            {locale === lang && (
+              <svg class="im-lang-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+          </a>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- View Controls -->
+  <div class="im-view-controls">
+    <div class="im-view-toggle">
+      <button
+        class:list={["im-view-btn", { active: viewMode === 'grid' }]}
+        data-view="grid"
+        title={i18n('view.grid')}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </button>
+      <button
+        class:list={["im-view-btn", { active: viewMode === 'list' }]}
+        data-view="list"
+        title={i18n('view.list')}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <select class="im-sort-select" id="im-sort-select" title={i18n('sort.sort_by')}>
+      <option value="name" selected={sortBy === 'name'}>{i18n('sort.name')}</option>
+      <option value="name-desc" selected={sortBy === 'name-desc'}>{i18n('sort.name_desc')}</option>
+      <option value="category" selected={sortBy === 'category'}>{i18n('sort.category')}</option>
+      <option value="recent" selected={sortBy === 'recent'}>{i18n('sort.recent')}</option>
+    </select>
+  </div>
+
+  <div class="im-stats">
+    <span id="im-icon-count">{filteredCount}</span> / {totalCount} {i18n('header.icons')}
+  </div>
+
+  <div class="im-actions">
+    <button class="im-btn im-btn-ghost" id="im-import-btn" title={i18n('header.import')}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7,10 12,15 17,10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      {i18n('header.import')}
+    </button>
+    <button class="im-btn im-btn-primary" id="im-add-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      {i18n('header.add')}
+    </button>
+  </div>
+</header>
+
+<style>
+  /* Language Selector */
+  .im-lang-selector {
+    position: relative;
+  }
+
+  .im-lang-current {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .im-lang-current:hover {
+    background: #1f1f23;
+    border-color: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-lang-selector.open .im-lang-current {
+    background: #1f1f23;
+    border-color: #6366f1;
+  }
+
+  .im-lang-flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .im-lang-flag img {
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .im-lang-code {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+
+  .im-lang-chevron {
+    opacity: 0.5;
+    transition: transform 150ms ease;
+  }
+
+  .im-lang-selector.open .im-lang-chevron {
+    transform: rotate(180deg);
+  }
+
+  .im-lang-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 160px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+    padding: 0.375rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+    z-index: 100;
+  }
+
+  .im-lang-selector.open .im-lang-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .im-lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 6px;
+    color: #a1a1aa;
+    text-decoration: none;
+    transition: 150ms ease;
+  }
+
+  .im-lang-option:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-lang-option.active {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+  }
+
+  .im-lang-name {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .im-lang-check {
+    color: #6366f1;
+    flex-shrink: 0;
+  }
+
+  /* Drop Zone */
+  .im-drop-zone {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(9, 9, 11, 0.95);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .im-drop-zone.active {
+    display: flex;
+    pointer-events: auto;
+  }
+
+  .im-drop-zone-content {
+    text-align: center;
+    padding: 3rem;
+    border: 2px dashed #6366f1;
+    border-radius: 24px;
+    background: rgba(99, 102, 241, 0.1);
+    animation: dropPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dropPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.9; }
+  }
+
+  .im-drop-zone-content svg {
+    color: #6366f1;
+    margin-bottom: 1rem;
+  }
+
+  .im-drop-zone-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .im-drop-zone-content p {
+    color: #71717a;
+    margin: 0;
+  }
+
+  /* Preview Modal */
+  .im-preview-modal {
+    position: fixed;
+    z-index: 200;
+    background: #18181b;
+    border: 1px solid #3f3f46;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 150ms ease, visibility 150ms ease;
+    pointer-events: none;
+    min-width: 280px;
+  }
+
+  .im-preview-modal.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .im-preview-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .im-preview-icon {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    border-radius: 12px;
+    color: #f4f4f5;
+  }
+
+  .im-preview-icon :global(svg) {
+    width: 64px;
+    height: 64px;
+    fill: currentColor;
+  }
+
+  .im-preview-info {
+    text-align: center;
+    width: 100%;
+  }
+
+  .im-preview-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 0 0 0.5rem 0;
+    word-break: break-all;
+  }
+
+  .im-preview-meta {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #71717a;
+    margin-bottom: 1rem;
+  }
+
+  .im-preview-meta span {
+    padding: 0.25rem 0.5rem;
+    background: #27272a;
+    border-radius: 4px;
+  }
+
+  .im-preview-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .im-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+    border: 1px solid #3f3f46;
+    background: #27272a;
+    color: #a1a1aa;
+  }
+
+  .im-btn-sm:hover {
+    background: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-btn-fav {
+    border-color: #52525b;
+  }
+
+  .im-btn-fav:hover,
+  .im-btn-fav.active {
+    background: rgba(250, 204, 21, 0.15);
+    border-color: #facc15;
+    color: #facc15;
+  }
+
+  .im-btn-fav.active svg {
+    fill: #facc15;
+  }
+
+  .im-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 75px;
+    padding: 0 1.5rem;
+    background: #12121a;
+    border-bottom: 1px solid #27272a;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .im-search {
+    flex: 1;
+    position: relative;
+    max-width: 400px;
+  }
+
+  .im-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #71717a;
+    pointer-events: none;
+  }
+
+  .im-search input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    color: #f4f4f5;
+    transition: 150ms ease;
+  }
+
+  .im-search input::placeholder {
+    color: #52525b;
+  }
+
+  .im-search input:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: #1a1a24;
+  }
+
+  .im-search-kbd {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.125rem 0.5rem;
+    background: #27272a;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-family: inherit;
+    color: #71717a;
+    pointer-events: none;
+  }
+
+  /* View Controls */
+  .im-view-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .im-view-toggle {
+    display: flex;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 2px;
+  }
+
+  .im-view-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #71717a;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+  }
+
+  .im-view-btn:hover {
+    color: #a1a1aa;
+  }
+
+  .im-view-btn.active {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-sort-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    color: #a1a1aa;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+  }
+
+  .im-sort-select:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .im-sort-select option {
+    background: #18181b;
+    color: #f4f4f5;
+  }
+
+  .im-stats {
+    color: #71717a;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  #im-icon-count {
+    color: #f4f4f5;
+    font-weight: 600;
+  }
+
+  .im-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .im-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .im-btn-primary {
+    background: #6366f1;
+    color: white;
+  }
+
+  .im-btn-primary:hover {
+    background: #4f46e5;
+  }
+
+  .im-btn-ghost {
+    background: transparent;
+    color: #a1a1aa;
+    border: 1px solid #27272a;
+  }
+
+  .im-btn-ghost:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-drag-hint {
+    font-size: 0.75rem;
+    color: #52525b;
+    margin-left: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .im-header {
+      flex-wrap: wrap;
+    }
+
+    .im-search {
+      order: 3;
+      max-width: 100%;
+      flex-basis: 100%;
+    }
+
+    .im-stats {
+      display: none;
+    }
+
+    .im-drag-hint {
+      display: none;
+    }
+  }
+</style>

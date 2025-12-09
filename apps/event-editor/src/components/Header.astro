@@ -1,0 +1,194 @@
+---
+
+---
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+      </svg>
+      <span class="logo-text">Event Editor</span>
+    </div>
+    <span class="logo-badge">SageBox</span>
+  </div>
+
+  <div class="header-center">
+    <div class="connection-status" id="connection-status">
+      <span class="status-dot"></span>
+      <span class="status-text">Desconectado</span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <button class="header-btn" id="import-rules" title="Importar reglas">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7,10 12,15 17,10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+    </button>
+    <button class="header-btn" id="export-rules" title="Exportar reglas">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17,8 12,3 7,8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+    </button>
+    <div class="header-divider"></div>
+    <button class="header-btn primary" id="run-all" title="Ejecutar todas las reglas">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5,3 19,12 5,21"></polygon>
+      </svg>
+      <span>Ejecutar</span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--event-color);
+  }
+
+  .logo-text {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .logo-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: var(--accent-muted);
+    color: var(--accent);
+    border-radius: 9999px;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    transition: background 0.2s;
+  }
+
+  .connection-status.connected .status-dot {
+    background: var(--success);
+  }
+
+  .connection-status.connected .status-text {
+    color: var(--success);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  .header-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .header-btn:hover {
+    background: var(--border);
+    color: var(--text);
+    border-color: var(--border-hover);
+  }
+
+  .header-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .header-btn.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+</style>
+
+<script>
+  // Verificar conexión con el preview
+  function checkConnection() {
+    const status = document.getElementById('connection-status');
+    const iframe = document.querySelector('#preview-frame') as HTMLIFrameElement;
+
+    if (iframe && iframe.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage({ type: 'ping' }, '*');
+      } catch {
+        status?.classList.remove('connected');
+      }
+    }
+  }
+
+  window.addEventListener('message', e => {
+    if (e.data.type === 'pong') {
+      const status = document.getElementById('connection-status');
+      if (status) {
+        status.classList.add('connected');
+        status.querySelector('.status-text')!.textContent = 'Conectado';
+      }
+    }
+  });
+
+  // Check periodically
+  setInterval(checkConnection, 3000);
+</script>

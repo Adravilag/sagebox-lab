@@ -1,0 +1,1063 @@
+---
+
+---
+
+<aside class="sidebar" id="sidebar-left">
+  <div class="sidebar-content">
+    <!-- Components Section -->
+    <div class="sidebar-section">
+      <h3 class="section-title">
+        Componentes
+        <span class="section-badge" id="components-count">0</span>
+      </h3>
+      <div class="component-list" id="component-list">
+        <p class="empty-state" id="no-components">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+          </svg>
+          <span>Carga una página para<br />detectar componentes</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Demo Projects Section -->
+    <div class="sidebar-section">
+      <h3 class="section-title">Demos de prueba</h3>
+      <div class="demo-list" id="demo-list">
+        <button class="demo-item" data-url="http://localhost:5500/tools/event-editor/examples/vanilla/index.html">
+          <span class="demo-icon">🧪</span>
+          <div class="demo-info">
+            <span class="demo-name">Componentes básicos</span>
+            <span class="demo-desc">Todos los componentes</span>
+          </div>
+        </button>
+        <button class="demo-item" data-url="http://localhost:5500/tools/event-editor/examples/vanilla/dashboard.html">
+          <span class="demo-icon">📊</span>
+          <div class="demo-info">
+            <span class="demo-name">Dashboard</span>
+            <span class="demo-desc">App de ejemplo</span>
+          </div>
+        </button>
+        <button class="demo-item" data-url="http://localhost:5500/tools/event-editor/examples/vanilla/form.html">
+          <span class="demo-icon">📝</span>
+          <div class="demo-info">
+            <span class="demo-name">Formulario</span>
+            <span class="demo-desc">Registro interactivo</span>
+          </div>
+        </button>
+      </div>
+      <p class="demo-hint">
+        <small>Ejecuta <code>npx serve . -p 5500</code> desde la raíz del proyecto</small>
+      </p>
+    </div>
+
+    <!-- Rules Section -->
+    <div class="sidebar-section flex-grow">
+      <h3 class="section-title">
+        Reglas activas
+        <span class="section-badge" id="rules-count">0</span>
+      </h3>
+      <div class="rules-list" id="rules-list">
+        <p class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+          </svg>
+          No hay reglas creadas<br />
+          <small>Selecciona un componente para empezar</small>
+        </p>
+      </div>
+      <button class="add-rule-btn" id="add-rule">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Nueva regla</span>
+      </button>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="sidebar-section">
+      <h3 class="section-title">Acciones rápidas</h3>
+      <div class="quick-actions">
+        <button class="quick-action" data-action="toggle-all">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+          </svg>
+          <span>Toggle todas</span>
+        </button>
+        <button class="quick-action" data-action="clear-all">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3,6 5,6 21,6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Limpiar todo</span>
+        </button>
+        <button class="quick-action" data-action="duplicate">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Duplicar regla</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<style is:global>
+  #sidebar-left {
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #sidebar-left .sidebar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  #sidebar-left .sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #sidebar-left .sidebar-section:last-child {
+    border-bottom: none;
+  }
+
+  #sidebar-left .sidebar-section.flex-grow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    overflow: hidden;
+  }
+
+  #sidebar-left .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-subtle);
+    margin-bottom: 12px;
+  }
+
+  #sidebar-left .section-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--accent-muted);
+    color: var(--accent);
+    border-radius: 10px;
+  }
+
+  /* Component list - dynamically generated */
+  #component-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  #component-list::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #component-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #component-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  #component-list .component-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    padding: 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  #component-list .component-item:hover {
+    border-color: var(--border-hover);
+    background: var(--bg);
+  }
+
+  #component-list .component-item.active {
+    background: var(--accent-muted);
+    border-color: var(--accent);
+  }
+
+  #component-list .component-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #component-list .component-icon {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  #component-list .component-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  #component-list .component-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  #component-list .component-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #component-list .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  #component-list .meta-badge.instances {
+    background: var(--accent);
+    color: white;
+  }
+
+  #component-list .meta-badge.events {
+    background: var(--surface);
+    color: var(--text-muted);
+  }
+
+  #component-list .component-chevron {
+    color: var(--text-subtle);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  #component-list .component-item.active .component-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  /* Instances section - hidden by default */
+  #component-list .component-instances {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+
+  #component-list .component-item.active .component-instances {
+    display: flex;
+  }
+
+  #component-list .instance-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 4px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  #component-list .instance-tag:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  #component-list .instance-anon {
+    font-size: 11px;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+
+  #component-list .instance-more {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    background: var(--surface);
+    border-radius: 6px;
+  }
+
+  /* Events list - hidden by default */
+  #component-list .component-events-list {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  #component-list .component-item.active .component-events-list {
+    display: flex;
+  }
+
+  #component-list .event-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 4px;
+    color: #a78bfa;
+  }
+
+  /* Empty state */
+  #component-list .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-subtle);
+    font-size: 13px;
+  }
+
+  #component-list .empty-state.hidden {
+    display: none;
+  }
+
+  /* Demo list styles */
+  #sidebar-left .demo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #sidebar-left .demo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  #sidebar-left .demo-item:hover {
+    background: var(--surface-elevated);
+    border-color: var(--border);
+  }
+
+  #sidebar-left .demo-item.active {
+    background: var(--success-muted);
+    border-color: var(--success);
+  }
+
+  #sidebar-left .demo-icon {
+    font-size: 16px;
+  }
+
+  #sidebar-left .demo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  #sidebar-left .demo-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  #sidebar-left .demo-desc {
+    font-size: 10px;
+    color: var(--text-subtle);
+  }
+
+  #sidebar-left .demo-hint {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--surface-elevated);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-subtle);
+    text-align: center;
+  }
+
+  #sidebar-left .demo-hint code {
+    font-family: var(--font-mono);
+    background: var(--bg);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+  }
+
+  #sidebar-left .rules-list {
+    flex: 1;
+    overflow-y: auto;
+    margin: -4px;
+    padding: 4px;
+  }
+
+  #sidebar-left .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-subtle);
+    font-size: 13px;
+  }
+
+  #sidebar-left .empty-state.hidden {
+    display: none;
+  }
+
+  #sidebar-left .empty-state small {
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  #sidebar-left .rule-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  #sidebar-left .rule-item:hover {
+    border-color: var(--border-hover);
+  }
+
+  #sidebar-left .rule-item.active {
+    border-color: var(--accent);
+    background: var(--accent-muted);
+  }
+
+  #sidebar-left .rule-item.disabled {
+    opacity: 0.5;
+  }
+
+  #sidebar-left .rule-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+  }
+
+  #sidebar-left .rule-item.disabled .rule-indicator {
+    background: var(--text-subtle);
+  }
+
+  #sidebar-left .rule-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #sidebar-left .rule-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #sidebar-left .rule-trigger {
+    font-size: 11px;
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+  }
+
+  #sidebar-left .rule-toggle {
+    padding: 4px;
+    background: none;
+    border: none;
+    color: var(--text-subtle);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  #sidebar-left .rule-toggle:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  #sidebar-left .add-rule-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    background: var(--accent-muted);
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  #sidebar-left .add-rule-btn:hover {
+    background: var(--accent);
+    border-style: solid;
+    color: white;
+  }
+
+  #sidebar-left .quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  #sidebar-left .quick-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  #sidebar-left .quick-action:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+</style>
+
+<script>
+  // Component metadata: icons, events, conditions, and actions
+  interface ComponentMeta {
+    icon: string;
+    events: string[];
+    conditions: string[];
+    actions: string[];
+  }
+
+  const COMPONENT_META: Record<string, ComponentMeta> = {
+    'sg-button': {
+      icon: '🔘',
+      events: ['sgClick', 'sgFocus', 'sgBlur', 'sgMouseEnter', 'sgMouseLeave'],
+      conditions: ['isDisabled', 'hasVariant', 'hasSize', 'isLoading'],
+      actions: ['click', 'focus', 'blur', 'setDisabled', 'setLoading', 'setVariant'],
+    },
+    'sg-dropdown': {
+      icon: '📋',
+      events: ['sgOpen', 'sgClose', 'sgSelect', 'sgToggle'],
+      conditions: ['isOpen', 'isDisabled', 'hasSelection'],
+      actions: ['open', 'close', 'toggle', 'selectItem', 'setDisabled'],
+    },
+    'sg-modal': {
+      icon: '🗔',
+      events: ['sgOpen', 'sgClose', 'sgCancel', 'sgConfirm', 'sgBackdropClick'],
+      conditions: ['isOpen', 'hasBackdrop', 'isClosable'],
+      actions: ['open', 'close', 'showModal', 'setHeader', 'setSize'],
+    },
+    'sg-select': {
+      icon: '☰',
+      events: ['sgChange', 'sgOpen', 'sgClose', 'sgSearch', 'sgClear'],
+      conditions: ['isOpen', 'hasValue', 'isDisabled', 'isMultiple', 'isSearchable'],
+      actions: ['open', 'close', 'setValue', 'clear', 'setDisabled', 'setOptions'],
+    },
+    'sg-input': {
+      icon: '✎',
+      events: ['sgInput', 'sgChange', 'sgFocus', 'sgBlur', 'sgClear', 'sgEnter', 'sgEscape'],
+      conditions: ['hasValue', 'isEmpty', 'isValid', 'isInvalid', 'isDisabled', 'isFocused', 'matchesPattern'],
+      actions: ['setValue', 'clear', 'focus', 'blur', 'setDisabled', 'setError', 'validate'],
+    },
+    'sg-date-picker': {
+      icon: '📅',
+      events: ['sgChange', 'sgOpen', 'sgClose', 'sgClear', 'sgMonthChange', 'sgYearChange'],
+      conditions: ['hasValue', 'isOpen', 'isDisabled', 'isInRange', 'isToday'],
+      actions: ['open', 'close', 'setValue', 'clear', 'setMin', 'setMax', 'goToToday'],
+    },
+    'sg-tooltip': {
+      icon: '💬',
+      events: ['sgOpen', 'sgClose', 'sgShow', 'sgHide'],
+      conditions: ['isVisible', 'hasContent'],
+      actions: ['show', 'hide', 'toggle', 'setContent', 'setPosition'],
+    },
+    'sg-context-menu': {
+      icon: '📑',
+      events: ['sgOpen', 'sgClose', 'sgSelect', 'sgItemClick'],
+      conditions: ['isOpen', 'hasItems'],
+      actions: ['open', 'close', 'setItems', 'setPosition'],
+    },
+    'sg-theme-toggle': {
+      icon: '🌓',
+      events: ['sgChange', 'sgToggle'],
+      conditions: ['isDark', 'isLight', 'isSystem'],
+      actions: ['setTheme', 'toggle', 'setLight', 'setDark', 'setSystem'],
+    },
+    'sg-badge': {
+      icon: '🏷️',
+      events: ['sgClick'],
+      conditions: ['hasValue', 'isVisible'],
+      actions: ['setValue', 'setVariant', 'hide', 'show'],
+    },
+    'sg-card': {
+      icon: '🃏',
+      events: ['sgClick', 'sgMouseEnter', 'sgMouseLeave', 'sgExpand', 'sgCollapse'],
+      conditions: ['isExpanded', 'isSelected', 'isDisabled'],
+      actions: ['expand', 'collapse', 'toggle', 'select', 'setDisabled'],
+    },
+    'sg-skeleton': {
+      icon: '▢',
+      events: ['sgLoad'],
+      conditions: ['isLoading', 'isLoaded'],
+      actions: ['show', 'hide', 'setLoading'],
+    },
+    'sg-breadcrumb': {
+      icon: '🔗',
+      events: ['sgNavigate', 'sgItemClick'],
+      conditions: ['hasItems', 'isLastItem'],
+      actions: ['setItems', 'navigate', 'goBack'],
+    },
+    'sg-stats-card': {
+      icon: '📊',
+      events: ['sgClick', 'sgRefresh'],
+      conditions: ['isLoading', 'hasValue', 'hasTrend'],
+      actions: ['setValue', 'setTrend', 'refresh', 'setLoading'],
+    },
+    'sg-search-box': {
+      icon: '🔍',
+      events: ['sgSearch', 'sgInput', 'sgClear', 'sgFocus', 'sgBlur', 'sgSubmit'],
+      conditions: ['hasValue', 'isEmpty', 'isSearching', 'hasResults'],
+      actions: ['search', 'clear', 'focus', 'blur', 'setPlaceholder', 'setResults'],
+    },
+    'sg-info-field': {
+      icon: 'ℹ️',
+      events: ['sgCopy', 'sgClick'],
+      conditions: ['hasValue', 'isCopyable'],
+      actions: ['setValue', 'copy', 'setLabel'],
+    },
+    'sg-form-section': {
+      icon: '📝',
+      events: ['sgExpand', 'sgCollapse', 'sgValidate'],
+      conditions: ['isExpanded', 'isValid', 'hasErrors'],
+      actions: ['expand', 'collapse', 'validate', 'setTitle'],
+    },
+    'sg-icon': {
+      icon: '⬡',
+      events: ['sgClick'],
+      conditions: ['hasIcon', 'isSpinning'],
+      actions: ['setIcon', 'setSize', 'spin', 'stopSpin'],
+    },
+    'sg-tabs': {
+      icon: '📑',
+      events: ['sgChange', 'sgTabClick', 'sgTabClose'],
+      conditions: ['hasActiveTab', 'isDisabled'],
+      actions: ['setActiveTab', 'addTab', 'removeTab', 'setDisabled'],
+    },
+    'sg-accordion': {
+      icon: '📂',
+      events: ['sgExpand', 'sgCollapse', 'sgChange'],
+      conditions: ['isExpanded', 'isDisabled', 'allowMultiple'],
+      actions: ['expand', 'collapse', 'toggle', 'expandAll', 'collapseAll'],
+    },
+    'sg-checkbox': {
+      icon: '☑️',
+      events: ['sgChange', 'sgCheck', 'sgUncheck'],
+      conditions: ['isChecked', 'isIndeterminate', 'isDisabled'],
+      actions: ['check', 'uncheck', 'toggle', 'setDisabled', 'setIndeterminate'],
+    },
+    'sg-radio': {
+      icon: '🔘',
+      events: ['sgChange', 'sgSelect'],
+      conditions: ['isSelected', 'isDisabled'],
+      actions: ['select', 'setDisabled', 'setValue'],
+    },
+    'sg-switch': {
+      icon: '🔀',
+      events: ['sgChange', 'sgToggle'],
+      conditions: ['isOn', 'isOff', 'isDisabled'],
+      actions: ['turnOn', 'turnOff', 'toggle', 'setDisabled'],
+    },
+    'sg-slider': {
+      icon: '🎚️',
+      events: ['sgChange', 'sgInput', 'sgDragStart', 'sgDragEnd'],
+      conditions: ['hasValue', 'isAtMin', 'isAtMax', 'isDisabled'],
+      actions: ['setValue', 'setMin', 'setMax', 'setStep', 'setDisabled'],
+    },
+    'sg-progress': {
+      icon: '📶',
+      events: ['sgComplete', 'sgChange'],
+      conditions: ['isComplete', 'isIndeterminate', 'hasValue'],
+      actions: ['setValue', 'setMax', 'setIndeterminate', 'reset'],
+    },
+    'sg-avatar': {
+      icon: '👤',
+      events: ['sgClick', 'sgError', 'sgLoad'],
+      conditions: ['hasImage', 'hasInitials', 'isOnline'],
+      actions: ['setImage', 'setInitials', 'setStatus', 'setSize'],
+    },
+    'sg-alert': {
+      icon: '⚠️',
+      events: ['sgClose', 'sgAction'],
+      conditions: ['isVisible', 'isDismissible', 'hasAction'],
+      actions: ['show', 'hide', 'dismiss', 'setMessage', 'setType'],
+    },
+    'sg-toast': {
+      icon: '🍞',
+      events: ['sgShow', 'sgHide', 'sgAction'],
+      conditions: ['isVisible', 'hasAction'],
+      actions: ['show', 'hide', 'setMessage', 'setDuration', 'setType'],
+    },
+    'sg-pagination': {
+      icon: '📄',
+      events: ['sgChange', 'sgPageClick', 'sgNext', 'sgPrev'],
+      conditions: ['isFirstPage', 'isLastPage', 'hasMultiplePages'],
+      actions: ['setPage', 'nextPage', 'prevPage', 'setTotal', 'setPageSize'],
+    },
+    'sg-table': {
+      icon: '📋',
+      events: ['sgSort', 'sgFilter', 'sgSelect', 'sgRowClick', 'sgPageChange'],
+      conditions: ['hasData', 'isEmpty', 'isLoading', 'hasSelection', 'isSorted'],
+      actions: ['setData', 'sort', 'filter', 'selectRow', 'clearSelection', 'refresh'],
+    },
+  };
+
+  // Global conditions that can be applied to any component
+  const GLOBAL_CONDITIONS = [
+    { id: 'element.visible', label: 'Elemento visible', description: 'El elemento está visible en el DOM' },
+    { id: 'element.hidden', label: 'Elemento oculto', description: 'El elemento está oculto' },
+    { id: 'element.exists', label: 'Elemento existe', description: 'El elemento existe en el DOM' },
+    { id: 'element.hasClass', label: 'Tiene clase', description: 'El elemento tiene una clase específica', param: 'className' },
+    { id: 'element.hasAttribute', label: 'Tiene atributo', description: 'El elemento tiene un atributo', param: 'attrName' },
+    { id: 'element.attributeEquals', label: 'Atributo igual a', description: 'Un atributo tiene un valor específico', params: ['attrName', 'value'] },
+    { id: 'event.detail.equals', label: 'Detalle igual a', description: 'El detalle del evento es igual a un valor', params: ['key', 'value'] },
+    { id: 'event.detail.contains', label: 'Detalle contiene', description: 'El detalle del evento contiene un valor', params: ['key', 'value'] },
+    { id: 'event.detail.matches', label: 'Detalle coincide', description: 'El detalle del evento coincide con un patrón', params: ['key', 'pattern'] },
+    { id: 'localStorage.equals', label: 'localStorage igual a', description: 'Un valor de localStorage es igual a', params: ['key', 'value'] },
+    { id: 'localStorage.exists', label: 'localStorage existe', description: 'Una clave existe en localStorage', param: 'key' },
+    { id: 'custom', label: 'Condición personalizada', description: 'Evalúa código JavaScript personalizado', param: 'code' },
+  ];
+
+  // Global actions that can be applied to any element
+  const GLOBAL_ACTIONS = [
+    { id: 'element.setAttribute', label: 'Establecer atributo', description: 'Establece un atributo en el elemento', params: ['attrName', 'value'] },
+    { id: 'element.removeAttribute', label: 'Eliminar atributo', description: 'Elimina un atributo del elemento', param: 'attrName' },
+    { id: 'element.addClass', label: 'Añadir clase', description: 'Añade una clase CSS al elemento', param: 'className' },
+    { id: 'element.removeClass', label: 'Eliminar clase', description: 'Elimina una clase CSS del elemento', param: 'className' },
+    { id: 'element.toggleClass', label: 'Alternar clase', description: 'Alterna una clase CSS', param: 'className' },
+    { id: 'element.setStyle', label: 'Establecer estilo', description: 'Establece un estilo CSS', params: ['property', 'value'] },
+    { id: 'element.setTextContent', label: 'Establecer texto', description: 'Establece el contenido de texto', param: 'text' },
+    { id: 'element.setInnerHTML', label: 'Establecer HTML', description: 'Establece el HTML interno', param: 'html' },
+    { id: 'element.show', label: 'Mostrar elemento', description: 'Muestra el elemento' },
+    { id: 'element.hide', label: 'Ocultar elemento', description: 'Oculta el elemento' },
+    { id: 'element.toggle', label: 'Alternar visibilidad', description: 'Alterna la visibilidad del elemento' },
+    { id: 'element.focus', label: 'Dar foco', description: 'Da el foco al elemento' },
+    { id: 'element.blur', label: 'Quitar foco', description: 'Quita el foco del elemento' },
+    { id: 'element.click', label: 'Simular click', description: 'Simula un click en el elemento' },
+    { id: 'element.scrollIntoView', label: 'Scroll al elemento', description: 'Hace scroll hasta el elemento' },
+    { id: 'emit', label: 'Emitir evento', description: 'Emite un evento personalizado', params: ['eventName', 'detail'] },
+    { id: 'call', label: 'Llamar método', description: 'Llama un método del componente', params: ['methodName', 'args'] },
+    { id: 'navigate', label: 'Navegar a URL', description: 'Navega a una URL', param: 'url' },
+    { id: 'localStorage.set', label: 'Guardar en localStorage', description: 'Guarda un valor en localStorage', params: ['key', 'value'] },
+    { id: 'localStorage.remove', label: 'Eliminar de localStorage', description: 'Elimina una clave de localStorage', param: 'key' },
+    { id: 'console.log', label: 'Log en consola', description: 'Imprime un mensaje en la consola', param: 'message' },
+    { id: 'alert', label: 'Mostrar alerta', description: 'Muestra una alerta del navegador', param: 'message' },
+    { id: 'delay', label: 'Esperar', description: 'Espera un tiempo antes de continuar', param: 'ms' },
+    { id: 'custom', label: 'Código personalizado', description: 'Ejecuta código JavaScript personalizado', param: 'code' },
+  ];
+
+  // Export for use in RulePanel
+  (window as any).EVENT_EDITOR_META = {
+    components: COMPONENT_META,
+    globalConditions: GLOBAL_CONDITIONS,
+    globalActions: GLOBAL_ACTIONS,
+  };
+
+  // Detected components from iframe
+  let detectedComponents: Map<string, { count: number; ids: string[] }> = new Map();
+
+  // Update component list in sidebar
+  function updateComponentList() {
+    const componentList = document.getElementById('component-list');
+    const componentsCount = document.getElementById('components-count');
+    const noComponents = document.getElementById('no-components');
+
+    if (!componentList) return;
+
+    // Clear existing items (except empty state)
+    componentList.querySelectorAll('.component-item').forEach(item => item.remove());
+
+    if (detectedComponents.size === 0) {
+      noComponents?.classList.remove('hidden');
+      if (componentsCount) componentsCount.textContent = '0';
+      return;
+    }
+
+    noComponents?.classList.add('hidden');
+    if (componentsCount) componentsCount.textContent = String(detectedComponents.size);
+
+    // Create component items sorted by count (most used first)
+    const sortedComponents = Array.from(detectedComponents.entries()).sort((a, b) => b[1].count - a[1].count);
+
+    sortedComponents.forEach(([component, info]) => {
+      const meta = COMPONENT_META[component] || { icon: '📦', events: [] };
+      const eventCount = meta.events.length;
+      const instanceCount = info.count;
+      const hasIds = info.ids.length > 0;
+
+      const div = document.createElement('div');
+      div.className = 'component-item';
+      div.setAttribute('data-component', component);
+
+      // Build instances tags
+      let instanceTags = '';
+      if (hasIds) {
+        instanceTags = info.ids
+          .slice(0, 4)
+          .map(id => `<span class="instance-tag" data-id="${id}">#${id}</span>`)
+          .join('');
+        if (info.ids.length > 4) {
+          instanceTags += `<span class="instance-more">+${info.ids.length - 4}</span>`;
+        }
+      } else {
+        instanceTags = `<span class="instance-anon">${instanceCount} sin ID</span>`;
+      }
+
+      // Build event tags
+      let eventTags = '';
+      if (eventCount > 0) {
+        eventTags = meta.events.map(ev => `<span class="event-tag">${ev}</span>`).join('');
+      }
+
+      div.innerHTML = [
+        '<div class="component-header">',
+        `<span class="component-icon">${meta.icon}</span>`,
+        '<div class="component-info">',
+        `<span class="component-name">${component}</span>`,
+        '<div class="component-meta">',
+        `<span class="meta-badge instances">${instanceCount}</span>`,
+        `<span class="meta-badge events">${eventCount} evento${eventCount !== 1 ? 's' : ''}</span>`,
+        '</div>',
+        '</div>',
+        '<svg class="component-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>',
+        '</div>',
+        `<div class="component-instances">${instanceTags}</div>`,
+        eventCount > 0 ? `<div class="component-events-list">${eventTags}</div>` : '',
+      ].join('');
+
+      // Toggle expanded state
+      div.addEventListener('click', e => {
+        const target = e.target as HTMLElement;
+
+        // If clicking on instance tag, select that specific instance
+        if (target.classList.contains('instance-tag')) {
+          const instanceId = target.getAttribute('data-id');
+          document.dispatchEvent(
+            new CustomEvent('event-editor:instance-selected', {
+              detail: { component, instanceId },
+            }),
+          );
+          return;
+        }
+
+        // Toggle expanded
+        const wasActive = div.classList.contains('active');
+        document.querySelectorAll('.component-item').forEach(i => i.classList.remove('active'));
+
+        if (!wasActive) {
+          div.classList.add('active');
+        }
+
+        document.dispatchEvent(
+          new CustomEvent('event-editor:component-selected', {
+            detail: {
+              component,
+              events: meta.events,
+              instances: info.ids,
+              count: info.count,
+            },
+          }),
+        );
+      });
+
+      componentList.appendChild(div);
+    });
+  }
+
+  // Scan iframe for SageBox components
+  function scanIframeComponents() {
+    const iframe = document.getElementById('preview-frame') as HTMLIFrameElement;
+    if (!iframe?.contentDocument) return;
+
+    detectedComponents.clear();
+
+    try {
+      const doc = iframe.contentDocument;
+      const allElements = doc.querySelectorAll('*');
+
+      allElements.forEach(el => {
+        const tagName = el.tagName.toLowerCase();
+        if (tagName.startsWith('sg-')) {
+          const existing = detectedComponents.get(tagName) || { count: 0, ids: [] };
+          existing.count++;
+          if (el.id) {
+            existing.ids.push(el.id);
+          }
+          detectedComponents.set(tagName, existing);
+        }
+      });
+
+      updateComponentList();
+
+      // Notify the system about detected components
+      document.dispatchEvent(
+        new CustomEvent('event-editor:components-detected', {
+          detail: {
+            components: Array.from(detectedComponents.entries()).map(([name, info]) => ({
+              name,
+              ...info,
+              events: COMPONENT_META[name]?.events || [],
+            })),
+          },
+        }),
+      );
+    } catch (e) {
+      console.warn('Cannot access iframe content (CORS):', e);
+    }
+  }
+
+  // Listen for iframe load
+  document.addEventListener('event-editor:preview-loaded', () => {
+    // Wait for iframe content to fully load
+    setTimeout(scanIframeComponents, 500);
+  });
+
+  // Listen for messages from iframe (alternative method)
+  window.addEventListener('message', event => {
+    if (event.data?.type === 'event-editor:components-list') {
+      detectedComponents.clear();
+      event.data.components.forEach((comp: { name: string; count: number; ids: string[] }) => {
+        detectedComponents.set(comp.name, { count: comp.count, ids: comp.ids });
+      });
+      updateComponentList();
+    }
+  });
+
+  // Component selection (for dynamically added items)
+  document.getElementById('component-list')?.addEventListener('click', e => {
+    const target = (e.target as HTMLElement).closest('.component-item');
+    if (target) {
+      document.querySelectorAll('.component-item').forEach(i => i.classList.remove('active'));
+      target.classList.add('active');
+    }
+  });
+
+  // Demo selection - Load demo URL in preview
+  document.querySelectorAll('.demo-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.demo-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      const url = item.getAttribute('data-url');
+      if (url) {
+        // Update the URL input in Preview
+        const urlInput = document.getElementById('preview-url') as HTMLInputElement;
+        if (urlInput) {
+          urlInput.value = url;
+        }
+
+        // Load the URL in the iframe
+        const previewFrame = document.getElementById('preview-frame') as HTMLIFrameElement;
+        const previewOverlay = document.getElementById('preview-overlay');
+        if (previewFrame) {
+          previewFrame.src = url;
+          previewOverlay?.classList.add('hidden');
+        }
+
+        document.dispatchEvent(
+          new CustomEvent('event-editor:demo-loaded', {
+            detail: { url },
+          }),
+        );
+      }
+    });
+  });
+
+  // Add rule button
+  document.getElementById('add-rule')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('event-editor:add-rule'));
+  });
+
+  // Quick actions
+  document.querySelectorAll('.quick-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.getAttribute('data-action');
+      document.dispatchEvent(
+        new CustomEvent('event-editor:quick-action', {
+          detail: { action },
+        }),
+      );
+    });
+  });
+</script>

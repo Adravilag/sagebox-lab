@@ -1,0 +1,1327 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Header from '../components/Header.astro';
+import IconGrid from '../components/IconGrid.astro';
+import AddModal from '../components/AddModal.astro';
+import ImportModal from '../components/ImportModal.astro';
+import SelectionBar from '../components/SelectionBar.astro';
+import Toast from '../components/Toast.astro';
+import { readIcons, categorizeIcons, ICON_SETS, readProjectIcons, isAnimatedSVG } from '../lib/icons';
+import { getLocale, createT, type Locale } from '../lib/i18n';
+
+// Get locale from URL or browser
+const locale = getLocale(Astro.request) as Locale;
+const t = createT(locale);
+
+// Client-side translations
+const clientTranslations = {
+  selected: t('selection.selected'),
+};
+
+// Get current params from URL
+const category = Astro.url.searchParams.get('category') || 'all';
+const search = Astro.url.searchParams.get('search') || '';
+const viewMode = (Astro.url.searchParams.get('view') || 'grid') as 'grid' | 'list';
+const sortBy = (Astro.url.searchParams.get('sort') || 'name') as 'name' | 'name-desc' | 'category' | 'recent';
+
+// Read all icons
+const allIcons = await readIcons();
+const categories = categorizeIcons(allIcons);
+
+// Project icons are those with inProject: true
+const projectIconNames = new Set(allIcons.filter(icon => icon.inProject).map(icon => icon.name));
+
+// Filter icons by category
+let filteredIcons = [...allIcons];
+
+if (category === 'custom') {
+  filteredIcons = allIcons.filter(icon => {
+    const prefix = icon.name.split(':')[0];
+    return !Object.keys(ICON_SETS).includes(prefix);
+  });
+} else if (category === 'animated') {
+  // Filter to only show animated icons
+  filteredIcons = allIcons.filter(icon => isAnimatedSVG(icon.content));
+} else if (category === 'favorites') {
+  // Favorites are filtered client-side since they're stored in localStorage
+  // We'll pass all icons and filter on the client
+  filteredIcons = [...allIcons];
+} else if (category === 'project') {
+  // Filter to only show icons in the project
+  filteredIcons = allIcons.filter(icon => projectIconNames.has(icon.name));
+} else if (category !== 'all' && ICON_SETS[category]) {
+  filteredIcons = allIcons.filter(icon => icon.name.startsWith(`${category}:`));
+}
+
+// Apply search filter (supports regex with /pattern/)
+if (search) {
+  const isRegex = search.startsWith('/') && search.endsWith('/') && search.length > 2;
+
+  if (isRegex) {
+    try {
+      const pattern = new RegExp(search.slice(1, -1), 'i');
+      filteredIcons = filteredIcons.filter(icon => pattern.test(icon.name));
+    } catch {
+      // Invalid regex, fall back to normal search
+      const searchLower = search.toLowerCase();
+      filteredIcons = filteredIcons.filter(icon =>
+        icon.name.toLowerCase().includes(searchLower)
+      );
+    }
+  } else {
+    const searchLower = search.toLowerCase();
+    filteredIcons = filteredIcons.filter(icon =>
+      icon.name.toLowerCase().includes(searchLower)
+    );
+  }
+}
+
+// Sort icons based on sortBy parameter
+switch (sortBy) {
+  case 'name-desc':
+    filteredIcons.sort((a, b) => b.name.localeCompare(a.name));
+    break;
+  case 'category':
+    filteredIcons.sort((a, b) => {
+      const catA = a.name.includes(':') ? a.name.split(':')[0] : 'zzz-custom';
+      const catB = b.name.includes(':') ? b.name.split(':')[0] : 'zzz-custom';
+      if (catA !== catB) return catA.localeCompare(catB);
+      return a.name.localeCompare(b.name);
+    });
+    break;
+  case 'recent':
+    // For recent, reverse the array (assuming newer icons are at the end)
+    filteredIcons.reverse();
+    break;
+  default:
+    filteredIcons.sort((a, b) => a.name.localeCompare(b.name));
+}
+---
+
+<Layout title="Icon Manager - SageBox">
+  <div class="im-app">
+    <Sidebar
+      categories={categories}
+      currentCategory={category}
+      iconSets={ICON_SETS}
+      locale={locale}
+    />
+
+    <main class="im-main">
+      <Header
+        totalCount={allIcons.length}
+        filteredCount={filteredIcons.length}
+        viewMode={viewMode}
+        sortBy={sortBy}
+        locale={locale}
+      />
+
+      <IconGrid
+        icons={filteredIcons.map(icon => ({
+          name: icon.name,
+          content: icon.content,
+          category: icon.name.includes(':') ? icon.name.split(':')[0] : 'custom'
+        }))}
+        viewMode={viewMode}
+        locale={locale}
+      />
+    </main>
+
+    <AddModal locale={locale} />
+    <ImportModal locale={locale} />
+    <SelectionBar locale={locale} />
+    <Toast />
+  </div>
+
+  <!-- Pass project icons and locale to client -->
+  <script define:vars={{ projectIcons: [...projectIconNames], currentLocale: locale, translations: clientTranslations }}>
+    window.__PROJECT_ICONS__ = new Set(projectIcons);
+    window.__LOCALE__ = currentLocale;
+    window.__T__ = translations;
+
+    // Persist locale in cookie and localStorage
+    const LANG_KEY = 'saged-icon-lang';
+
+    // Check if we have a lang param in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+
+    if (langParam) {
+      // Save to localStorage and cookie
+      localStorage.setItem(LANG_KEY, langParam);
+      document.cookie = `${LANG_KEY}=${langParam};path=/;max-age=31536000`; // 1 year
+    } else {
+      // Load from localStorage and redirect if different
+      const savedLang = localStorage.getItem(LANG_KEY);
+      if (savedLang && savedLang !== currentLocale) {
+        urlParams.set('lang', savedLang);
+        window.location.search = urlParams.toString();
+      }
+    }
+  </script>
+</Layout>
+
+<style is:global>
+  .im-app {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .im-main {
+    flex: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  @media (max-width: 1024px) {
+    .im-main {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  // Client-side functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('im-search-input') as HTMLInputElement;
+    const addBtn = document.getElementById('im-add-btn');
+    const importBtn = document.getElementById('im-import-btn');
+    const addModal = document.getElementById('im-add-modal');
+    const importModal = document.getElementById('im-import-modal');
+    const modalCloses = document.querySelectorAll('.im-modal-close, #im-cancel-add, #im-cancel-import');
+    const addForm = document.getElementById('im-add-form') as HTMLFormElement;
+    const svgTextarea = document.getElementById('im-icon-svg') as HTMLTextAreaElement;
+    const svgPreview = document.getElementById('im-svg-preview');
+    const iconGrid = document.getElementById('im-icon-grid');
+    const selectionBar = document.getElementById('im-selection-bar');
+    const selectionCount = document.getElementById('im-selection-count');
+    const iconCountEl = document.getElementById('im-icon-count');
+    const nameInput = document.getElementById('im-icon-name') as HTMLInputElement;
+    const selectAllBtn = document.getElementById('im-select-all-btn');
+
+    let selectedIcons: Set<string> = new Set();
+    const selectionInfo = document.getElementById('im-selection-info');
+
+    // ============================================
+    // LANGUAGE SELECTOR DROPDOWN
+    // ============================================
+    const langToggle = document.getElementById('im-lang-toggle');
+    const langSelector = langToggle?.closest('.im-lang-selector');
+
+    if (langToggle && langSelector) {
+      langToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = langSelector.classList.toggle('open');
+        langToggle.setAttribute('aria-expanded', String(isOpen));
+      });
+
+      // Close on click outside
+      document.addEventListener('click', (e) => {
+        if (!langSelector.contains(e.target as Node)) {
+          langSelector.classList.remove('open');
+          langToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Close on Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && langSelector.classList.contains('open')) {
+          langSelector.classList.remove('open');
+          langToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    function updateSelectionBar() {
+      if (selectionCount) {
+        selectionCount.textContent = selectedIcons.size.toString();
+      }
+      if (selectionBar) {
+        selectionBar.classList.toggle('visible', selectedIcons.size > 0);
+      }
+      // Update selection info badge
+      if (selectionInfo) {
+        if (selectedIcons.size > 0) {
+          const t = (window as any).__T__ || { selected: 'selected' };
+          selectionInfo.textContent = `${selectedIcons.size} ${t.selected}`;
+          selectionInfo.classList.add('visible');
+        } else {
+          selectionInfo.classList.remove('visible');
+        }
+      }
+    }
+
+    function updateIconCount() {
+      const cards = iconGrid?.querySelectorAll('.im-icon-card');
+      if (iconCountEl && cards) {
+        iconCountEl.textContent = cards.length.toString();
+      }
+    }
+
+    function updateSelectAllButton() {
+      if (!selectAllBtn) return;
+      const visibleCards = iconGrid?.querySelectorAll('.im-icon-card') as NodeListOf<HTMLElement>;
+      const totalVisible = visibleCards?.length || 0;
+      const selectedVisible = Array.from(visibleCards || []).filter(card =>
+        selectedIcons.has(card.dataset.name || '')
+      ).length;
+
+      const allSelected = totalVisible > 0 && selectedVisible === totalVisible;
+      const someSelected = selectedVisible > 0 && selectedVisible < totalVisible;
+
+      selectAllBtn.classList.toggle('active', allSelected);
+      selectAllBtn.classList.toggle('partial', someSelected);
+    }
+
+    // Update progress bar in sidebar footer
+    function updateProgressBar() {
+      const progressBar = document.querySelector('.im-storage-bar');
+      if (!progressBar) return;
+
+      // Get counts from sidebar categories (source of truth)
+      const prefixCounts: Record<string, number> = {};
+      let total = 0;
+
+      document.querySelectorAll('.im-cat-item[data-category]').forEach(el => {
+        const category = el.getAttribute('data-category');
+        if (!category || category === 'all' || category === 'favorites' || category === 'project' || category === 'custom') return;
+
+        const countEl = el.querySelector('.im-cat-count');
+        if (countEl) {
+          const count = parseInt(countEl.textContent || '0');
+          if (count > 0) {
+            prefixCounts[category] = count;
+            total += count;
+          }
+        }
+      });
+
+      // Also check for custom icons
+      const customEl = document.querySelector('.im-cat-item[data-category="custom"] .im-cat-count');
+      if (customEl) {
+        const customCount = parseInt(customEl.textContent || '0');
+        if (customCount > 0) {
+          prefixCounts['custom'] = customCount;
+          total += customCount;
+        }
+      }
+
+      // Update segment widths
+      const segments = progressBar.querySelectorAll('.im-storage-segment') as NodeListOf<HTMLElement>;
+      segments.forEach(segment => {
+        const title = segment.getAttribute('title') || '';
+        const prefix = title.split(':')[0];
+        const count = prefixCounts[prefix] || 0;
+        const percentage = total > 0 ? (count / total) * 100 : 0;
+        segment.style.width = `${percentage}%`;
+        segment.setAttribute('title', `${prefix}: ${count}`);
+
+        // Hide segment if count is 0
+        segment.style.display = count > 0 ? 'block' : 'none';
+      });
+    }
+
+    // ============================================
+    // VIEW MODE & SORT CONTROLS
+    // ============================================
+    const viewBtns = document.querySelectorAll('.im-view-btn');
+    const sortSelect = document.getElementById('im-sort-select') as HTMLSelectElement;
+
+    function updateUrl(params: Record<string, string>) {
+      const url = new URL(window.location.href);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) {
+          url.searchParams.set(key, value);
+        } else {
+          url.searchParams.delete(key);
+        }
+      });
+      window.location.href = url.toString();
+    }
+
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = (btn as HTMLElement).dataset.view;
+        if (view) {
+          updateUrl({ view });
+        }
+      });
+    });
+
+    sortSelect?.addEventListener('change', () => {
+      updateUrl({ sort: sortSelect.value });
+    });
+
+    // ============================================
+    // FAVORITES (localStorage)
+    // ============================================
+    const FAVORITES_KEY = 'saged-icon-favorites';
+
+    function getFavorites(): Set<string> {
+      try {
+        const stored = localStorage.getItem(FAVORITES_KEY);
+        return new Set(stored ? JSON.parse(stored) : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveFavorites(favorites: Set<string>) {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+    }
+
+    function toggleFavorite(iconName: string): boolean {
+      const favorites = getFavorites();
+      if (favorites.has(iconName)) {
+        favorites.delete(iconName);
+        saveFavorites(favorites);
+        return false;
+      } else {
+        favorites.add(iconName);
+        saveFavorites(favorites);
+        return true;
+      }
+    }
+
+    // Initialize favorites on page load
+    const favorites = getFavorites();
+    document.querySelectorAll('.im-icon-card').forEach(card => {
+      const name = (card as HTMLElement).dataset.name;
+      if (name && favorites.has(name)) {
+        card.classList.add('favorited');
+      }
+    });
+
+    // Initialize project icons on page load
+    const projectIcons = (window as any).__PROJECT_ICONS__ || new Set();
+    document.querySelectorAll('.im-icon-card').forEach(card => {
+      const name = (card as HTMLElement).dataset.name;
+      if (name && projectIcons.has(name)) {
+        card.classList.add('in-project');
+      }
+    });
+
+    // Filter by favorites if category is 'favorites'
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('category') === 'favorites') {
+      document.querySelectorAll('.im-icon-card').forEach(card => {
+        const name = (card as HTMLElement).dataset.name;
+        if (name && !favorites.has(name)) {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+
+      // Update icon count for favorites
+      const iconCountEl = document.querySelector('.im-icon-count');
+      if (iconCountEl) {
+        iconCountEl.textContent = favorites.size.toString();
+      }
+    }
+
+    // ============================================
+    // LOADING OVERLAY
+    // ============================================
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'im-loading-overlay';
+    loadingOverlay.innerHTML = `
+      <div class="im-loading-content">
+        <div class="im-loading-spinner"></div>
+        <div class="im-loading-text">Processing...</div>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+
+    // Add loading styles
+    const loadingStyles = document.createElement('style');
+    loadingStyles.textContent = `
+      .im-loading-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(9, 9, 11, 0.9);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .im-loading-overlay.active {
+        display: flex;
+      }
+      .im-loading-content {
+        text-align: center;
+      }
+      .im-loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid #27272a;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 1rem;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .im-loading-text {
+        color: #a1a1aa;
+        font-size: 0.875rem;
+      }
+    `;
+    document.head.appendChild(loadingStyles);
+
+    function showLoading(text = 'Processing...') {
+      loadingOverlay.querySelector('.im-loading-text')!.textContent = text;
+      loadingOverlay.classList.add('active');
+    }
+
+    function hideLoading() {
+      loadingOverlay.classList.remove('active');
+    }
+
+    // ============================================
+    // PASTE SVG FROM CLIPBOARD (Ctrl+V)
+    // ============================================
+    document.addEventListener('paste', async (e) => {
+      // Only handle paste if no input is focused or add modal is open
+      const isModalOpen = addModal?.classList.contains('open');
+      const isInputFocused = document.activeElement instanceof HTMLInputElement ||
+                            document.activeElement instanceof HTMLTextAreaElement;
+
+      if (isInputFocused && !isModalOpen) return;
+
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) return;
+
+      const text = clipboardData.getData('text');
+      if (!text || !text.trim().startsWith('<svg')) return;
+
+      e.preventDefault();
+
+      // If add modal is not open, open it and paste
+      if (!isModalOpen) {
+        addModal?.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        // Small delay to ensure modal is open
+        setTimeout(() => {
+          if (svgTextarea) {
+            svgTextarea.value = text.trim();
+            svgTextarea.dispatchEvent(new Event('input'));
+          }
+          nameInput?.focus();
+        }, 100);
+      } else if (svgTextarea) {
+        svgTextarea.value = text.trim();
+        svgTextarea.dispatchEvent(new Event('input'));
+      }
+
+      window.showToast?.('SVG pasted from clipboard', 'success');
+    });
+
+    // Search functionality
+    let searchTimeout: ReturnType<typeof setTimeout>;
+    searchInput?.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const url = new URL(window.location.href);
+        if (searchInput.value) {
+          url.searchParams.set('search', searchInput.value);
+        } else {
+          url.searchParams.delete('search');
+        }
+        window.location.href = url.toString();
+      }, 500);
+    });
+
+    // Keyboard shortcut for search
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+      if (e.key === 'Escape') {
+        addModal?.classList.remove('open');
+        importModal?.classList.remove('open');
+      }
+    });
+
+    // Open Add Modal
+    addBtn?.addEventListener('click', () => {
+      addModal?.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    });
+
+    // Open Import Modal
+    importBtn?.addEventListener('click', () => {
+      if (typeof window.openImportModal === 'function') {
+        window.openImportModal();
+      } else {
+        importModal?.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    // Close modals
+    modalCloses.forEach(btn => {
+      btn.addEventListener('click', () => {
+        addModal?.classList.remove('open');
+        importModal?.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+
+    // Close on backdrop click
+    document.querySelectorAll('.im-modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', () => {
+        addModal?.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+
+    // Close import modal on overlay click (outside dialog)
+    importModal?.addEventListener('click', (e) => {
+      if (e.target === importModal) {
+        importModal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // SVG Preview
+    svgTextarea?.addEventListener('input', () => {
+      if (svgPreview) {
+        const svg = svgTextarea.value.trim();
+        if (svg.startsWith('<svg')) {
+          svgPreview.innerHTML = svg;
+        } else {
+          svgPreview.innerHTML = '<span class="im-preview-placeholder">Invalid SVG</span>';
+        }
+      }
+    });
+
+    // Add Icon Form
+    addForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(addForm);
+      const name = formData.get('name') as string;
+      const svg = formData.get('svg') as string;
+
+      try {
+        const res = await fetch('/api/icons/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, content: svg })
+        });
+
+        if (res.ok) {
+          window.showToast?.(`Icon "${name}" added successfully`, 'success');
+          addModal?.classList.remove('open');
+          addForm.reset();
+          if (svgPreview) {
+            svgPreview.innerHTML = '<span class="im-preview-placeholder">SVG preview</span>';
+          }
+          setTimeout(() => location.reload(), 500);
+        } else {
+          const data = await res.json();
+          window.showToast?.(data.error || 'Failed to add icon', 'error');
+        }
+      } catch (err) {
+        window.showToast?.('Failed to add icon', 'error');
+      }
+    });
+
+    // Icon card interactions
+    iconGrid?.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      const card = target.closest('.im-icon-card') as HTMLElement;
+      if (!card) return;
+
+      const iconName = card.dataset.name!;
+      const action = target.closest('[data-action]')?.getAttribute('data-action');
+
+      if (action === 'copy') {
+        const svg = card.querySelector('.im-icon-preview')?.innerHTML;
+        if (svg) {
+          await navigator.clipboard.writeText(svg);
+          window.showToast?.('SVG copied to clipboard', 'success');
+        }
+      } else if (action === 'copy-name') {
+        await navigator.clipboard.writeText(iconName);
+        window.showToast?.(`"${iconName}" copied`, 'success');
+      } else if (action === 'favorite') {
+        const isFavorite = toggleFavorite(iconName);
+        card.classList.toggle('favorited', isFavorite);
+        window.showToast?.(isFavorite ? 'Added to favorites' : 'Removed from favorites', 'success');
+      } else if (action === 'delete') {
+        if (confirm(`Delete icon "${iconName}"?`)) {
+          const deleteRes = await fetch(`/api/icons/${encodeURIComponent(iconName)}/`, {
+            method: 'DELETE'
+          });
+          if (deleteRes.ok) {
+            window.showToast?.(`Icon "${iconName}" deleted`, 'success');
+            card.remove();
+            updateIconCount();
+
+            // Update favorites count and remove from localStorage
+            try {
+              const stored = localStorage.getItem(FAVORITES_KEY);
+              if (stored) {
+                const favorites = JSON.parse(stored) as string[];
+                const updated = favorites.filter(f => f !== iconName);
+                if (updated.length !== favorites.length) {
+                  localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+                  const favCountEl = document.getElementById('im-favorites-count');
+                  if (favCountEl) {
+                    favCountEl.textContent = `${updated.length} icons`;
+                  }
+                }
+              }
+            } catch {}
+
+            // Update project count (fetch fresh from API)
+            try {
+              const projRes = await fetch('/api/project/');
+              const projData = await projRes.json();
+              const projCountEl = document.getElementById('im-project-count');
+              if (projCountEl) {
+                projCountEl.textContent = `${projData.count || 0} icons`;
+              }
+            } catch {}
+
+            // Update total count in sidebar footer
+            const totalCountEl = document.querySelector('.im-sidebar-footer .im-storage-value');
+            if (totalCountEl) {
+              const match = totalCountEl.textContent?.match(/\d+/);
+              const currentTotal = match ? parseInt(match[0]) : 0;
+              totalCountEl.textContent = `${Math.max(0, currentTotal - 1)} icons`;
+            }
+
+            // Update "All" category count
+            const allCountEl = document.getElementById('im-all-count');
+            if (allCountEl) {
+              const match = allCountEl.textContent?.match(/\d+/);
+              const currentAll = match ? parseInt(match[0]) : 0;
+              allCountEl.textContent = `${Math.max(0, currentAll - 1)} icons`;
+            }
+
+            // Update the specific category count based on icon prefix
+            const iconPrefix = iconName.split(':')[0];
+            if (iconPrefix) {
+              // Find the category item for this prefix and update its count
+              const categoryItem = document.querySelector(`.im-cat-item[data-category="${iconPrefix}"]`);
+              if (categoryItem) {
+                const countEl = categoryItem.querySelector('.im-cat-count');
+                if (countEl) {
+                  const count = parseInt(countEl.textContent || '0');
+                  countEl.textContent = `${Math.max(0, count - 1)}`;
+                }
+              }
+
+              // Update progress bar - recalculate segment widths
+              updateProgressBar();
+            }
+
+            // Update select all button state
+            updateSelectAllButton();
+          } else {
+            window.showToast?.('Failed to delete icon', 'error');
+          }
+        }
+      } else if (target.tagName === 'INPUT') {
+        const checkbox = target as HTMLInputElement;
+        if (checkbox.checked) {
+          selectedIcons.add(iconName);
+          card.classList.add('selected');
+        } else {
+          selectedIcons.delete(iconName);
+          card.classList.remove('selected');
+        }
+        updateSelectionBar();
+        updateSelectAllButton();
+      } else if (!action) {
+        const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+          if (checkbox.checked) {
+            selectedIcons.add(iconName);
+            card.classList.add('selected');
+          } else {
+            selectedIcons.delete(iconName);
+            card.classList.remove('selected');
+          }
+          updateSelectionBar();
+          updateSelectAllButton();
+        }
+      }
+    });
+
+    const isProjectView = new URLSearchParams(window.location.search).get('category') === 'project';
+    const addToProjectBtn = document.getElementById('im-add-to-project');
+    const removeFromProjectBtn = document.getElementById('im-remove-from-project');
+
+    // Show correct button based on view
+    if (isProjectView) {
+      if (addToProjectBtn) addToProjectBtn.style.display = 'none';
+      if (removeFromProjectBtn) removeFromProjectBtn.style.display = 'inline-flex';
+    }
+
+    document.getElementById('im-deselect-all')?.addEventListener('click', () => {
+      selectedIcons.clear();
+      iconGrid?.querySelectorAll('.im-icon-card.selected').forEach(card => {
+        card.classList.remove('selected');
+        const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        if (checkbox) checkbox.checked = false;
+      });
+      updateSelectionBar();
+      updateSelectAllButton();
+    });
+
+    // Select All - selects all visible (filtered) icons
+    selectAllBtn?.addEventListener('click', () => {
+      const visibleCards = iconGrid?.querySelectorAll('.im-icon-card') as NodeListOf<HTMLElement>;
+      if (!visibleCards || visibleCards.length === 0) return;
+
+      // Check if all visible are already selected
+      const allSelected = Array.from(visibleCards).every(card =>
+        selectedIcons.has(card.dataset.name || '')
+      );
+
+      if (allSelected) {
+        // Deselect all visible
+        visibleCards.forEach(card => {
+          const name = card.dataset.name;
+          if (name) {
+            selectedIcons.delete(name);
+            card.classList.remove('selected');
+            const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+            if (checkbox) checkbox.checked = false;
+          }
+        });
+      } else {
+        // Select all visible
+        visibleCards.forEach(card => {
+          const name = card.dataset.name;
+          if (name) {
+            selectedIcons.add(name);
+            card.classList.add('selected');
+            const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+            if (checkbox) checkbox.checked = true;
+          }
+        });
+      }
+
+      updateSelectionBar();
+      updateSelectAllButton();
+    });
+
+    // Add to Project
+    document.getElementById('im-add-to-project')?.addEventListener('click', async () => {
+      if (selectedIcons.size === 0) return;
+
+      showLoading(`Adding ${selectedIcons.size} icons to project...`);
+
+      try {
+        const res = await fetch('/api/project/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ icons: [...selectedIcons] })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Mark cards as "in project"
+          selectedIcons.forEach(name => {
+            const card = document.querySelector(`[data-name="${name}"]`);
+            card?.classList.add('in-project');
+          });
+
+          // Update project count in sidebar
+          const projectCount = document.getElementById('im-project-count');
+          if (projectCount) {
+            projectCount.textContent = `${data.count} icons`;
+          }
+
+          window.showToast?.(`Added ${selectedIcons.size} icons to project`, 'success');
+
+          // Clear selection
+          selectedIcons.clear();
+          document.querySelectorAll('.im-icon-card.selected').forEach(card => {
+            card.classList.remove('selected');
+            const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+            if (checkbox) checkbox.checked = false;
+          });
+          updateSelectionBar();
+          updateSelectAllButton();
+        } else {
+          window.showToast?.(data.error || 'Failed to add to project', 'error');
+        }
+      } catch {
+        window.showToast?.('Failed to add to project', 'error');
+      } finally {
+        hideLoading();
+      }
+    });
+
+    // Remove from Project
+    document.getElementById('im-remove-from-project')?.addEventListener('click', async () => {
+      if (selectedIcons.size === 0) return;
+
+      showLoading(`Removing ${selectedIcons.size} icons from project...`);
+
+      try {
+        const res = await fetch('/api/project/', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ icons: [...selectedIcons] })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // If we're in project view, remove the cards
+          const isProjectView = new URLSearchParams(window.location.search).get('category') === 'project';
+
+          selectedIcons.forEach(name => {
+            const card = document.querySelector(`[data-name="${name}"]`);
+            card?.classList.remove('in-project');
+            if (isProjectView) {
+              card?.remove();
+            }
+          });
+
+          // Update project count in sidebar
+          const projectCount = document.getElementById('im-project-count');
+          if (projectCount) {
+            projectCount.textContent = `${data.count} icons`;
+          }
+
+          window.showToast?.(`Removed ${selectedIcons.size} icons from project`, 'success');
+
+          // Clear selection
+          selectedIcons.clear();
+          updateSelectionBar();
+          updateSelectAllButton();
+          if (isProjectView) {
+            updateIconCount();
+            // Update visible count in toolbar
+            const visibleCountEl = document.getElementById('im-visible-count');
+            if (visibleCountEl) {
+              const cards = iconGrid?.querySelectorAll('.im-icon-card');
+              visibleCountEl.textContent = (cards?.length || 0).toString();
+            }
+          }
+        } else {
+          window.showToast?.(data.error || 'Failed to remove from project', 'error');
+        }
+      } catch {
+        window.showToast?.('Failed to remove from project', 'error');
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById('im-delete-selected')?.addEventListener('click', async () => {
+      if (selectedIcons.size === 0) return;
+      if (!confirm(`Delete ${selectedIcons.size} icons?`)) return;
+
+      showLoading(`Deleting ${selectedIcons.size} icons...`);
+
+      let deleted = 0;
+      const deletedNames: string[] = [];
+
+      for (const name of selectedIcons) {
+        const res = await fetch(`/api/icons/${encodeURIComponent(name)}/`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          deleted++;
+          deletedNames.push(name);
+          document.querySelector(`[data-name="${name}"]`)?.remove();
+        }
+      }
+
+      // Update favorites count (remove deleted icons from favorites)
+      try {
+        const stored = localStorage.getItem(FAVORITES_KEY);
+        if (stored) {
+          const favorites = JSON.parse(stored) as string[];
+          const updated = favorites.filter(f => !deletedNames.includes(f));
+          localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+          const favCountEl = document.getElementById('im-favorites-count');
+          if (favCountEl) {
+            favCountEl.textContent = `${updated.length} icons`;
+          }
+        }
+      } catch {}
+
+      // Update project count (fetch fresh from API since delete also removes from project)
+      try {
+        const projRes = await fetch('/api/project/');
+        const projData = await projRes.json();
+        const projCountEl = document.getElementById('im-project-count');
+        if (projCountEl) {
+          projCountEl.textContent = `${projData.count || 0} icons`;
+        }
+      } catch {}
+
+      // Update total count in sidebar footer
+      const totalCountEl = document.querySelector('.im-sidebar-footer .im-storage-value');
+      if (totalCountEl) {
+        const match = totalCountEl.textContent?.match(/\d+/);
+        const currentTotal = match ? parseInt(match[0]) : 0;
+        totalCountEl.textContent = `${Math.max(0, currentTotal - deleted)} icons`;
+      }
+
+      // Update "All" category count
+      const allCountEl = document.getElementById('im-all-count');
+      if (allCountEl) {
+        const match = allCountEl.textContent?.match(/\d+/);
+        const currentAll = match ? parseInt(match[0]) : 0;
+        allCountEl.textContent = `${Math.max(0, currentAll - deleted)} icons`;
+      }
+
+      // Update category-specific counters
+      const categoryCounts: Record<string, number> = {};
+      for (const iconName of deletedNames) {
+        const prefix = iconName.split(':')[0];
+        if (prefix) {
+          categoryCounts[prefix] = (categoryCounts[prefix] || 0) + 1;
+        }
+      }
+
+      for (const [prefix, count] of Object.entries(categoryCounts)) {
+        const categoryCounter = document.querySelector(`[data-category="${prefix}"] .im-cat-count`);
+        if (categoryCounter) {
+          const match = categoryCounter.textContent?.match(/\d+/);
+          const current = match ? parseInt(match[0]) : 0;
+          categoryCounter.textContent = `${Math.max(0, current - count)}`;
+        }
+      }
+
+      // Recalculate progress bar
+      updateProgressBar();
+
+      hideLoading();
+      selectedIcons.clear();
+      updateSelectionBar();
+      updateSelectAllButton();
+      updateIconCount();
+      window.showToast?.(`Deleted ${deleted} icons`, 'success');
+    });
+
+    // Import modal logic
+    const iconSetCards = document.querySelectorAll('.im-icon-set-card');
+    const importOptions = document.getElementById('im-import-options');
+    const importSelectedName = document.getElementById('im-import-selected-name');
+    const confirmImport = document.getElementById('im-confirm-import') as HTMLButtonElement;
+    let selectedIconSet: string | null = null;
+
+    iconSetCards.forEach(card => {
+      card.addEventListener('click', () => {
+        iconSetCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedIconSet = card.getAttribute('data-prefix');
+        const name = card.getAttribute('data-name');
+
+        if (importOptions) importOptions.style.display = 'block';
+        if (importSelectedName) importSelectedName.textContent = name || selectedIconSet || '-';
+        if (confirmImport) confirmImport.disabled = false;
+      });
+    });
+
+    confirmImport?.addEventListener('click', async () => {
+      if (!selectedIconSet) return;
+
+      const search = (document.getElementById('im-import-search') as HTMLInputElement)?.value || '';
+      const limit = parseInt((document.getElementById('im-import-limit') as HTMLInputElement)?.value) || 50;
+
+      confirmImport.disabled = true;
+      showLoading(`Importing icons from ${selectedIconSet}...`);
+
+      try {
+        const res = await fetch('/api/import/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prefix: selectedIconSet,
+            search: search.split(',').map(s => s.trim()).filter(Boolean),
+            limit
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          window.showToast?.(`Imported ${data.count} icons from ${selectedIconSet}`, 'success');
+          importModal?.classList.remove('open');
+          // Redirect to the imported icon set category
+          setTimeout(() => {
+            window.location.href = `/?category=${selectedIconSet}`;
+          }, 500);
+        } else {
+          window.showToast?.(data.error || 'Failed to import icons', 'error');
+        }
+      } catch (err) {
+        window.showToast?.('Failed to import icons', 'error');
+      } finally {
+        hideLoading();
+        confirmImport.disabled = false;
+      }
+    });
+
+    document.getElementById('im-export-selected')?.addEventListener('click', async () => {
+      if (selectedIcons.size === 0) return;
+
+      const icons: Record<string, string> = {};
+      selectedIcons.forEach(name => {
+        const card = document.querySelector(`[data-name="${name}"]`);
+        const svg = card?.querySelector('.im-icon-preview')?.innerHTML;
+        if (svg) icons[name] = svg;
+      });
+
+      const blob = new Blob([JSON.stringify(icons, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icons-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      window.showToast?.(`Exported ${selectedIcons.size} icons`, 'success');
+    });
+
+    // ============================================
+    // DRAG & DROP FUNCTIONALITY
+    // ============================================
+    const dropZone = document.getElementById('im-drop-zone');
+    let dragCounter = 0;
+
+    // Prevent default drag behaviors on whole document
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      document.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    // Show drop zone when dragging files over
+    document.addEventListener('dragenter', (e) => {
+      dragCounter++;
+      const dt = (e as DragEvent).dataTransfer;
+      if (dt?.types.includes('Files')) {
+        dropZone?.classList.add('active');
+      }
+    });
+
+    document.addEventListener('dragleave', () => {
+      dragCounter--;
+      if (dragCounter === 0) {
+        dropZone?.classList.remove('active');
+      }
+    });
+
+    document.addEventListener('drop', async (e) => {
+      dragCounter = 0;
+      dropZone?.classList.remove('active');
+
+      const files = (e as DragEvent).dataTransfer?.files;
+      if (!files || files.length === 0) return;
+
+      const svgFiles = Array.from(files).filter(f =>
+        f.type === 'image/svg+xml' || f.name.endsWith('.svg')
+      );
+
+      if (svgFiles.length === 0) {
+        window.showToast?.('Please drop SVG files only', 'error');
+        return;
+      }
+
+      showLoading(`Adding ${svgFiles.length} icon${svgFiles.length > 1 ? 's' : ''}...`);
+
+      let added = 0;
+      let failed = 0;
+
+      for (const file of svgFiles) {
+        try {
+          const content = await file.text();
+
+          // Extract name from filename (remove .svg extension)
+          let name = file.name.replace(/\.svg$/i, '');
+          // Convert to kebab-case
+          name = name
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+
+          const res = await fetch('/api/icons/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, content })
+          });
+
+          if (res.ok) {
+            added++;
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+      }
+
+      hideLoading();
+
+      if (added > 0) {
+        window.showToast?.(`Added ${added} icon${added > 1 ? 's' : ''}${failed > 0 ? `, ${failed} failed` : ''}`, 'success');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        window.showToast?.(`Failed to add icons`, 'error');
+      }
+    });
+
+    // ============================================
+    // PREVIEW MODAL (Hover)
+    // ============================================
+    const previewModal = document.getElementById('im-preview-modal');
+    const previewIcon = document.getElementById('im-preview-icon');
+    const previewName = document.getElementById('im-preview-name');
+    const previewCategory = document.getElementById('im-preview-category');
+    const previewSize = document.getElementById('im-preview-size');
+    const previewCopySvg = document.getElementById('im-preview-copy-svg');
+    const previewCopyName = document.getElementById('im-preview-copy-name');
+    const previewToggleFav = document.getElementById('im-preview-toggle-fav');
+    const previewFavText = document.getElementById('im-preview-fav-text');
+
+    let currentPreviewSvg = '';
+    let currentPreviewName = '';
+    let previewTimeout: ReturnType<typeof setTimeout>;
+    let isOverPreview = false;
+    let lastHoveredCard: HTMLElement | null = null;
+
+    // Show preview on hover - with longer delay to avoid interfering with selection
+    iconGrid?.addEventListener('mouseover', (e) => {
+      const card = (e.target as HTMLElement).closest('.im-icon-card') as HTMLElement;
+      if (!card) return;
+
+      // If it's a different card, reset
+      if (lastHoveredCard !== card) {
+        clearTimeout(previewTimeout);
+        lastHoveredCard = card;
+      }
+
+      previewTimeout = setTimeout(() => {
+        // Only show if we're still over the same card
+        if (lastHoveredCard !== card) return;
+
+        const iconName = card.dataset.name!;
+        const iconCategory = card.dataset.category || 'custom';
+        const svg = card.querySelector('.im-icon-preview')?.innerHTML || '';
+
+        // Extract viewBox for size display
+        const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
+        const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+        const [, , w, h] = viewBox.split(' ');
+
+        currentPreviewSvg = svg;
+        currentPreviewName = iconName;
+
+        if (previewIcon) previewIcon.innerHTML = svg;
+        if (previewName) previewName.textContent = iconName;
+        if (previewCategory) previewCategory.textContent = iconCategory;
+        if (previewSize) previewSize.textContent = `${w}×${h}`;
+
+        // Update favorite button state
+        const isFav = getFavorites().has(iconName);
+        if (previewToggleFav) {
+          previewToggleFav.classList.toggle('active', isFav);
+        }
+        if (previewFavText) {
+          previewFavText.textContent = isFav ? 'Favorited' : 'Favorite';
+        }
+
+        // Position the preview
+        const rect = card.getBoundingClientRect();
+        const modalWidth = 280;
+        const modalHeight = 300;
+
+        let left = rect.right + 16;
+        let top = rect.top;
+
+        // Check if it would go off screen
+        if (left + modalWidth > window.innerWidth) {
+          left = rect.left - modalWidth - 16;
+        }
+        if (top + modalHeight > window.innerHeight) {
+          top = window.innerHeight - modalHeight - 16;
+        }
+        if (top < 16) top = 16;
+
+        if (previewModal) {
+          previewModal.style.left = `${left}px`;
+          previewModal.style.top = `${top}px`;
+          previewModal.classList.add('visible');
+        }
+      }, 800); // Longer delay to avoid interfering with selection
+    });
+
+    iconGrid?.addEventListener('mouseout', (e) => {
+      const card = (e.target as HTMLElement).closest('.im-icon-card');
+      if (!card) return;
+
+      clearTimeout(previewTimeout);
+      lastHoveredCard = null;
+
+      setTimeout(() => {
+        if (!isOverPreview) {
+          previewModal?.classList.remove('visible');
+        }
+      }, 100);
+    });
+
+    previewModal?.addEventListener('mouseenter', () => {
+      isOverPreview = true;
+    });
+
+    previewModal?.addEventListener('mouseleave', () => {
+      isOverPreview = false;
+      previewModal?.classList.remove('visible');
+    });
+
+    previewCopySvg?.addEventListener('click', async () => {
+      if (currentPreviewSvg) {
+        await navigator.clipboard.writeText(currentPreviewSvg);
+        window.showToast?.('SVG copied to clipboard', 'success');
+      }
+    });
+
+    previewCopyName?.addEventListener('click', async () => {
+      if (currentPreviewName) {
+        await navigator.clipboard.writeText(currentPreviewName);
+        window.showToast?.('Name copied to clipboard', 'success');
+      }
+    });
+
+    previewToggleFav?.addEventListener('click', () => {
+      if (currentPreviewName) {
+        const isFav = toggleFavorite(currentPreviewName);
+
+        // Update preview button state
+        previewToggleFav.classList.toggle('active', isFav);
+        if (previewFavText) {
+          previewFavText.textContent = isFav ? 'Favorited' : 'Favorite';
+        }
+
+        // Update the card state
+        const card = document.querySelector(`[data-name="${currentPreviewName}"]`);
+        card?.classList.toggle('favorited', isFav);
+
+        window.showToast?.(isFav ? 'Added to favorites' : 'Removed from favorites', 'success');
+      }
+    });
+  });
+</script>

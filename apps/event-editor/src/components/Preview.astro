@@ -1,0 +1,1286 @@
+---
+
+---
+
+<div class="preview-container">
+  <div class="preview-toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-title">Vista previa</span>
+      <div class="rules-status" id="rules-status" title="Reglas activas">
+        <span class="status-dot"></span>
+        <span class="status-count">0</span>
+      </div>
+    </div>
+    <div class="toolbar-center">
+      <div class="url-input-wrapper">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <input type="text" class="url-input" id="preview-url" placeholder="http://localhost:4200" value="http://localhost:4200" />
+        <button class="url-go-btn" id="go-btn" title="Ir">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12,5 19,12 12,19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <button class="toolbar-btn" id="refresh-btn" title="Refrescar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23,4 23,10 17,10"></polyline>
+          <polyline points="1,20 1,14 7,14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+      <button class="toolbar-btn" id="inspect-btn" title="Modo inspección">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 15l-2 5L9 9l11 4-5 2z"></path>
+          <path d="M14 14l5 5"></path>
+        </svg>
+      </button>
+      <button class="toolbar-btn" id="monitor-btn" title="Monitor de reglas">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+        </svg>
+      </button>
+      <button class="toolbar-btn" id="console-btn" title="Ver consola">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4,17 10,11 4,5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="preview-frame-wrapper" id="preview-wrapper">
+    <iframe id="preview-frame" class="preview-frame" src="about:blank" title="Preview"></iframe>
+    <div class="preview-overlay" id="preview-overlay">
+      <div class="overlay-content">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <p>Introduce una URL para comenzar</p>
+        <small>Apunta a tu aplicación local con componentes SageBox</small>
+      </div>
+    </div>
+
+    <!-- Rules Monitor Panel -->
+    <div class="rules-monitor" id="rules-monitor">
+      <div class="monitor-header">
+        <span class="monitor-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+          </svg>
+          Monitor de Reglas
+        </span>
+        <div class="monitor-controls">
+          <button class="monitor-toggle-all" id="toggle-all-rules" title="Activar/Desactivar todas">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect>
+              <circle cx="16" cy="12" r="3"></circle>
+            </svg>
+          </button>
+          <button class="monitor-close" id="close-monitor" title="Cerrar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="monitor-content" id="monitor-content">
+        <div class="monitor-empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+          </svg>
+          <span>No hay reglas activas</span>
+          <small>Crea una regla en el panel derecho</small>
+        </div>
+      </div>
+      <div class="monitor-log" id="monitor-log">
+        <div class="log-header">
+          <span>Actividad reciente</span>
+          <button class="log-clear" id="clear-log" title="Limpiar">Limpiar</button>
+        </div>
+        <div class="log-entries" id="log-entries"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-console" id="event-console">
+    <div class="console-header">
+      <span class="console-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4,17 10,11 4,5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        Consola de eventos
+      </span>
+      <button class="console-clear" id="clear-console" title="Limpiar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3,6 5,6 21,6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="console-content" id="console-content">
+      <div class="console-empty">Los eventos capturados aparecerán aquí</div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .preview-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rules-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .rules-status:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .rules-status.active {
+    background: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .rules-status .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-subtle);
+    transition: background 0.15s;
+  }
+
+  .rules-status.active .status-dot {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toolbar-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .toolbar-center {
+    flex: 1;
+    max-width: 500px;
+  }
+
+  .url-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+  }
+
+  .url-input-wrapper:focus-within {
+    border-color: var(--accent);
+  }
+
+  .url-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  .url-input::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .url-go-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .url-go-btn:hover {
+    background: var(--accent-hover);
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .toolbar-btn:hover {
+    background: var(--surface-elevated);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .toolbar-btn.active {
+    background: var(--accent-muted);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .preview-frame-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+
+  .preview-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    z-index: 10;
+    transition: opacity 0.3s;
+  }
+
+  .preview-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .overlay-content svg {
+    opacity: 0.5;
+  }
+
+  .overlay-content p {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .overlay-content small {
+    font-size: 12px;
+    color: var(--text-subtle);
+  }
+
+  .event-console {
+    height: 150px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: none;
+    flex-direction: column;
+  }
+
+  .event-console.open {
+    display: flex;
+  }
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .console-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .console-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .console-clear:hover {
+    background: var(--surface-elevated);
+    color: var(--text);
+  }
+
+  .console-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .console-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+
+  .console-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+  }
+
+  .console-entry:hover {
+    background: var(--surface-elevated);
+  }
+
+  .entry-time {
+    color: var(--text-subtle);
+    white-space: nowrap;
+  }
+
+  .entry-event {
+    color: var(--event-color);
+    font-weight: 500;
+  }
+
+  .entry-component {
+    color: var(--accent);
+  }
+
+  .entry-detail {
+    color: var(--text-muted);
+  }
+
+  /* Rules Monitor */
+  .rules-monitor {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 340px;
+    max-height: calc(100% - 16px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 100;
+  }
+
+  .rules-monitor.open {
+    display: flex;
+  }
+
+  .monitor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .monitor-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .monitor-title svg {
+    color: var(--accent);
+  }
+
+  .monitor-controls {
+    display: flex;
+    gap: 4px;
+  }
+
+  .monitor-toggle-all,
+  .monitor-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .monitor-toggle-all:hover,
+  .monitor-close:hover {
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .monitor-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    max-height: 200px;
+  }
+
+  .monitor-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    color: var(--text-subtle);
+    text-align: center;
+  }
+
+  .monitor-empty svg {
+    opacity: 0.3;
+  }
+
+  .monitor-empty small {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  .rule-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    transition: all 0.15s;
+  }
+
+  .rule-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .rule-card.disabled {
+    opacity: 0.5;
+  }
+
+  .rule-card.triggered {
+    border-color: var(--event-color);
+    background: rgba(var(--event-rgb), 0.1);
+    animation: rule-flash 0.5s ease;
+  }
+
+  @keyframes rule-flash {
+    0% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .rule-toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    background: var(--border);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .rule-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .rule-toggle.active {
+    background: var(--accent);
+  }
+
+  .rule-toggle.active::after {
+    transform: translateX(16px);
+  }
+
+  .rule-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .rule-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .rule-trigger {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .rule-trigger .event-name {
+    color: var(--event-color);
+  }
+
+  .rule-trigger .component-name {
+    color: var(--accent);
+  }
+
+  .rule-stats {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text-subtle);
+  }
+
+  .rule-stats .fire-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    background: var(--surface-elevated);
+    border-radius: 9px;
+    font-weight: 600;
+  }
+
+  .rule-stats .fire-count.active {
+    background: var(--event-color);
+    color: white;
+  }
+
+  /* Rule triggered animation */
+  .rule-card.triggered {
+    animation: rule-trigger-flash 0.5s ease;
+  }
+
+  @keyframes rule-trigger-flash {
+    0%,
+    100% {
+      background: var(--bg);
+    }
+    50% {
+      background: var(--accent-muted);
+      border-color: var(--accent);
+    }
+  }
+
+  /* Monitor Log */
+  .monitor-log {
+    border-top: 1px solid var(--border);
+    max-height: 150px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--bg);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .log-clear {
+    background: none;
+    border: none;
+    color: var(--text-subtle);
+    font-size: 10px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+
+  .log-clear:hover {
+    background: var(--surface-elevated);
+    color: var(--text);
+  }
+
+  .log-entries {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    animation: log-in 0.2s ease;
+  }
+
+  @keyframes log-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .log-entry.event {
+    background: rgba(var(--event-rgb), 0.1);
+  }
+
+  .log-entry.condition-pass {
+    background: rgba(var(--condition-rgb), 0.1);
+  }
+
+  .log-entry.condition-fail {
+    background: rgba(255, 100, 100, 0.1);
+  }
+
+  .log-entry.action {
+    background: rgba(var(--action-rgb), 0.1);
+  }
+
+  .log-time {
+    color: var(--text-subtle);
+    font-size: 10px;
+  }
+
+  .log-icon {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .log-icon.event {
+    color: var(--event-color);
+  }
+  .log-icon.condition {
+    color: var(--condition-color);
+  }
+  .log-icon.action {
+    color: var(--action-color);
+  }
+  .log-icon.error {
+    color: var(--danger);
+  }
+
+  .log-message {
+    flex: 1;
+    color: var(--text-muted);
+  }
+
+  .log-message strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  const urlInput = document.getElementById('preview-url') as HTMLInputElement;
+  const goBtn = document.getElementById('go-btn');
+  const refreshBtn = document.getElementById('refresh-btn');
+  const inspectBtn = document.getElementById('inspect-btn');
+  const monitorBtn = document.getElementById('monitor-btn');
+  const consoleBtn = document.getElementById('console-btn');
+  const previewFrame = document.getElementById('preview-frame') as HTMLIFrameElement;
+  const previewOverlay = document.getElementById('preview-overlay');
+  const eventConsole = document.getElementById('event-console');
+  const consoleContent = document.getElementById('console-content');
+  const clearConsoleBtn = document.getElementById('clear-console');
+  const rulesMonitor = document.getElementById('rules-monitor');
+  const monitorContent = document.getElementById('monitor-content');
+  const logEntries = document.getElementById('log-entries');
+  const rulesStatus = document.getElementById('rules-status');
+  const closeMonitorBtn = document.getElementById('close-monitor');
+  const clearLogBtn = document.getElementById('clear-log');
+  const toggleAllRulesBtn = document.getElementById('toggle-all-rules');
+
+  let isInspecting = false;
+
+  // Store active rules and their state
+  interface Rule {
+    id: number;
+    name: string;
+    enabled: boolean;
+    trigger: {
+      component: string;
+      event: string;
+      selector: string;
+    };
+    conditions: any[];
+    conditionLogic: string;
+    actions: any[];
+    fireCount: number;
+  }
+
+  let activeRules: Rule[] = [];
+  let allRulesEnabled = true;
+
+  function loadUrl(url: string) {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'http://' + url;
+    }
+    previewFrame.src = url;
+    previewOverlay?.classList.add('hidden');
+  }
+
+  // Emit event when iframe loads
+  previewFrame?.addEventListener('load', () => {
+    document.dispatchEvent(
+      new CustomEvent('event-editor:preview-loaded', {
+        detail: { url: previewFrame.src },
+      }),
+    );
+
+    // Re-inject rules when page reloads
+    if (activeRules.length > 0) {
+      setTimeout(() => injectRules(), 500);
+    }
+  });
+
+  goBtn?.addEventListener('click', () => {
+    loadUrl(urlInput.value);
+  });
+
+  urlInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      loadUrl(urlInput.value);
+    }
+  });
+
+  refreshBtn?.addEventListener('click', () => {
+    if (previewFrame.src && previewFrame.src !== 'about:blank') {
+      previewFrame.src = previewFrame.src;
+    }
+  });
+
+  inspectBtn?.addEventListener('click', () => {
+    isInspecting = !isInspecting;
+    inspectBtn.classList.toggle('active', isInspecting);
+    previewFrame.contentWindow?.postMessage(
+      {
+        type: 'toggle-inspect',
+        enabled: isInspecting,
+      },
+      '*',
+    );
+  });
+
+  // Monitor panel toggle
+  monitorBtn?.addEventListener('click', () => {
+    rulesMonitor?.classList.toggle('open');
+    monitorBtn.classList.toggle('active');
+  });
+
+  closeMonitorBtn?.addEventListener('click', () => {
+    rulesMonitor?.classList.remove('open');
+    monitorBtn?.classList.remove('active');
+  });
+
+  // Rules status click opens monitor
+  rulesStatus?.addEventListener('click', () => {
+    rulesMonitor?.classList.add('open');
+    monitorBtn?.classList.add('active');
+  });
+
+  consoleBtn?.addEventListener('click', () => {
+    eventConsole?.classList.toggle('open');
+    consoleBtn.classList.toggle('active');
+  });
+
+  clearConsoleBtn?.addEventListener('click', () => {
+    if (consoleContent) {
+      consoleContent.innerHTML = '<div class="console-empty">Los eventos capturados aparecerán aquí</div>';
+    }
+  });
+
+  clearLogBtn?.addEventListener('click', () => {
+    if (logEntries) {
+      logEntries.innerHTML = '';
+    }
+  });
+
+  toggleAllRulesBtn?.addEventListener('click', () => {
+    allRulesEnabled = !allRulesEnabled;
+    activeRules.forEach(rule => (rule.enabled = allRulesEnabled));
+    renderRulesMonitor();
+    injectRules();
+  });
+
+  // Listen for rule saved from RulePanel
+  document.addEventListener('event-editor:rule-saved', ((e: CustomEvent) => {
+    const rule = e.detail as Rule;
+    rule.fireCount = 0;
+
+    // Check if rule already exists (update) or is new (add)
+    const existingIndex = activeRules.findIndex(r => r.id === rule.id);
+    if (existingIndex >= 0) {
+      activeRules[existingIndex] = rule;
+    } else {
+      activeRules.push(rule);
+    }
+
+    renderRulesMonitor();
+    updateRulesStatus();
+    injectRules();
+
+    addLogEntry('action', `Regla "${rule.name}" guardada e inyectada`);
+  }) as EventListener);
+
+  // Render rules in monitor panel
+  function renderRulesMonitor() {
+    if (!monitorContent) return;
+
+    if (activeRules.length === 0) {
+      monitorContent.innerHTML = `
+        <div class="monitor-empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>No hay reglas activas</span>
+          <small>Crea una regla en el panel derecho</small>
+        </div>
+      `;
+      return;
+    }
+
+    monitorContent.innerHTML = activeRules
+      .map(
+        rule => `
+      <div class="rule-card ${rule.enabled ? '' : 'disabled'}" data-rule-id="${rule.id}">
+        <button class="rule-toggle ${rule.enabled ? 'active' : ''}" data-toggle="${rule.id}" title="Activar/Desactivar"></button>
+        <div class="rule-info">
+          <div class="rule-name">${rule.name}</div>
+          <div class="rule-trigger">
+            <span class="component-name">${rule.trigger.selector || rule.trigger.component}</span>
+            → <span class="event-name">${rule.trigger.event}</span>
+          </div>
+        </div>
+        <div class="rule-stats">
+          <span class="fire-count ${rule.fireCount > 0 ? 'active' : ''}">${rule.fireCount}</span>
+        </div>
+      </div>
+    `,
+      )
+      .join('');
+
+    // Attach toggle listeners
+    monitorContent.querySelectorAll('.rule-toggle').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const ruleId = parseInt(btn.getAttribute('data-toggle') || '0');
+        const rule = activeRules.find(r => r.id === ruleId);
+        if (rule) {
+          rule.enabled = !rule.enabled;
+          renderRulesMonitor();
+          injectRules();
+          addLogEntry(rule.enabled ? 'action' : 'error', `Regla "${rule.name}" ${rule.enabled ? 'activada' : 'desactivada'}`);
+        }
+      });
+    });
+  }
+
+  function updateRulesStatus() {
+    if (!rulesStatus) return;
+    const count = activeRules.filter(r => r.enabled).length;
+    const statusCount = rulesStatus.querySelector('.status-count');
+    if (statusCount) statusCount.textContent = String(count);
+    rulesStatus.classList.toggle('active', count > 0);
+  }
+
+  // Generate and inject rules code into iframe
+  function injectRules() {
+    const enabledRules = activeRules.filter(r => r.enabled);
+
+    if (enabledRules.length === 0) {
+      // Remove any injected rules
+      previewFrame.contentWindow?.postMessage(
+        {
+          type: 'event-editor:clear-rules',
+        },
+        '*',
+      );
+      return;
+    }
+
+    // Generate the rules code
+    const rulesCode = generateRulesCode(enabledRules);
+
+    // Send to iframe
+    previewFrame.contentWindow?.postMessage(
+      {
+        type: 'event-editor:inject-rules',
+        code: rulesCode,
+        rules: enabledRules.map(r => ({ id: r.id, name: r.name })),
+      },
+      '*',
+    );
+
+    addLogEntry('action', `${enabledRules.length} regla(s) inyectada(s)`);
+  }
+
+  function generateRulesCode(rules: Rule[]): string {
+    return rules
+      .map(rule => {
+        const selector = rule.trigger.selector || rule.trigger.component;
+        const event = rule.trigger.event;
+
+        let code = `
+// Rule: ${rule.name} (ID: ${rule.id})
+(function() {
+  const elements = document.querySelectorAll('${selector}');
+  elements.forEach(el => {
+    el.addEventListener('${event}', (e) => {
+      // Notify parent about event trigger
+      window.parent.postMessage({
+        type: 'event-editor:rule-triggered',
+        ruleId: ${rule.id},
+        ruleName: '${rule.name}',
+        event: '${event}',
+        component: el.tagName.toLowerCase()
+      }, '*');
+`;
+
+        // Collect selectors for variables
+        const usedSelectors = new Set<string>();
+        rule.conditions.forEach(c => {
+          if (c.target) usedSelectors.add(c.target);
+        });
+        rule.actions.forEach(a => {
+          if (a.target) usedSelectors.add(a.target);
+        });
+
+        const selectorVars: Record<string, string> = {};
+        let varIndex = 0;
+        usedSelectors.forEach(sel => {
+          const varName = sel.startsWith('#') ? sel.slice(1).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()) : `target${varIndex > 0 ? varIndex : ''}`;
+          selectorVars[sel] = varName;
+          code += `      const ${varName} = document.querySelector('${sel}');\n`;
+          varIndex++;
+        });
+
+        // Conditions
+        if (rule.conditions.length > 0) {
+          const condCode = rule.conditions.map(c => generateConditionJS(c, selectorVars)).join(rule.conditionLogic === 'AND' ? ' && ' : ' || ');
+          code += `
+      const conditionResult = ${condCode};
+      window.parent.postMessage({
+        type: 'event-editor:condition-checked',
+        ruleId: ${rule.id},
+        passed: conditionResult
+      }, '*');
+
+      if (conditionResult) {
+`;
+        }
+
+        // Actions
+        const indent = rule.conditions.length > 0 ? '        ' : '      ';
+        rule.actions.forEach(action => {
+          code += `${indent}${generateActionJS(action, selectorVars)}\n`;
+          code += `${indent}window.parent.postMessage({
+${indent}  type: 'event-editor:action-executed',
+${indent}  ruleId: ${rule.id},
+${indent}  action: '${action.type}'
+${indent}}, '*');\n`;
+        });
+
+        if (rule.conditions.length > 0) {
+          code += `      }\n`;
+        }
+
+        code += `    });
+  });
+})();
+`;
+        return code;
+      })
+      .join('\n');
+  }
+
+  function generateConditionJS(cond: any, selectorVars: Record<string, string>): string {
+    const target = cond.target ? selectorVars[cond.target] || `document.querySelector('${cond.target}')` : 'el';
+
+    switch (cond.type) {
+      case 'isDisabled':
+        return `${target}?.disabled`;
+      case 'isLoading':
+        return `${target}?.loading`;
+      case 'isOpen':
+        return `${target}?.open`;
+      case 'hasValue':
+        return `!!${target}?.value`;
+      case 'isEmpty':
+        return `!${target}?.value`;
+      case 'isValid':
+        return `${target}?.checkValidity?.()`;
+      case 'element.visible':
+        return `${target}?.offsetParent !== null`;
+      case 'element.hidden':
+        return `${target}?.offsetParent === null`;
+      case 'element.hasClass':
+        return `${target}?.classList.contains('${cond.value}')`;
+      case 'element.exists':
+        return `!!${target}`;
+      default:
+        return 'true';
+    }
+  }
+
+  function generateActionJS(action: any, selectorVars: Record<string, string>): string {
+    const target = action.target ? selectorVars[action.target] || `document.querySelector('${action.target}')` : 'el';
+
+    switch (action.type) {
+      case 'click':
+        return `${target}?.click();`;
+      case 'open':
+        return `if (${target}) { ${target}.open?.() ?? (${target}.open = true); }`;
+      case 'close':
+        return `if (${target}) { ${target}.close?.() ?? (${target}.open = false); }`;
+      case 'toggle':
+        return `if (${target}) { ${target}.toggle?.() ?? (${target}.open = !${target}.open); }`;
+      case 'focus':
+        return `${target}?.focus();`;
+      case 'blur':
+        return `${target}?.blur();`;
+      case 'show':
+        return `if (${target}) ${target}.style.display = '';`;
+      case 'hide':
+        return `if (${target}) ${target}.style.display = 'none';`;
+      case 'addClass':
+        return `${target}?.classList.add('${action.params?.className || ''}');`;
+      case 'removeClass':
+        return `${target}?.classList.remove('${action.params?.className || ''}');`;
+      case 'toggleClass':
+        return `${target}?.classList.toggle('${action.params?.className || ''}');`;
+      case 'setAttribute':
+        return `${target}?.setAttribute('${action.params?.attribute || ''}', '${action.params?.value || ''}');`;
+      case 'emit':
+        return `${target}?.dispatchEvent(new CustomEvent('${action.params?.eventName || ''}', { detail: ${action.params?.detail || '{}'} }));`;
+      case 'console.log':
+        return `console.log('${action.params?.message || ''}');`;
+      case 'alert':
+        return `alert('${action.params?.message || ''}');`;
+      case 'navigate':
+        return `window.location.href = '${action.params?.url || '/'}';`;
+      case 'custom':
+        return action.params?.code || '';
+      default:
+        return '// unknown action';
+    }
+  }
+
+  // Add entry to activity log
+  function addLogEntry(type: 'event' | 'condition' | 'action' | 'error', message: string) {
+    if (!logEntries) return;
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+
+    const iconMap: Record<string, string> = {
+      event: '⚡',
+      condition: '❓',
+      action: '▶',
+      error: '✗',
+    };
+
+    entry.innerHTML = `
+      <span class="log-time">${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+      <span class="log-icon ${type}">${iconMap[type]}</span>
+      <span class="log-message">${message}</span>
+    `;
+
+    logEntries.appendChild(entry);
+    logEntries.scrollTop = logEntries.scrollHeight;
+
+    // Keep only last 50 entries
+    while (logEntries.children.length > 50) {
+      logEntries.firstChild?.remove();
+    }
+  }
+
+  // Listen for messages from iframe
+  window.addEventListener('message', e => {
+    if (e.data.type === 'component-event') {
+      logEvent(e.data.payload);
+    }
+
+    if (e.data.type === 'event-editor:rule-triggered') {
+      const rule = activeRules.find(r => r.id === e.data.ruleId);
+      if (rule) {
+        rule.fireCount++;
+        renderRulesMonitor();
+
+        // Flash the rule card
+        const card = monitorContent?.querySelector(`[data-rule-id="${rule.id}"]`);
+        card?.classList.add('triggered');
+        setTimeout(() => card?.classList.remove('triggered'), 500);
+
+        addLogEntry('event', `<strong>${rule.name}</strong>: evento <strong>${e.data.event}</strong> disparado`);
+      }
+    }
+
+    if (e.data.type === 'event-editor:condition-checked') {
+      const rule = activeRules.find(r => r.id === e.data.ruleId);
+      if (rule) {
+        addLogEntry(e.data.passed ? 'condition' : 'error', `<strong>${rule.name}</strong>: condición ${e.data.passed ? 'cumplida ✓' : 'no cumplida ✗'}`);
+      }
+    }
+
+    if (e.data.type === 'event-editor:action-executed') {
+      const rule = activeRules.find(r => r.id === e.data.ruleId);
+      if (rule) {
+        addLogEntry('action', `<strong>${rule.name}</strong>: acción <strong>${e.data.action}</strong> ejecutada`);
+      }
+    }
+  });
+
+  function logEvent(payload: { event: string; component: string; detail: any }) {
+    const emptyState = consoleContent?.querySelector('.console-empty');
+    if (emptyState) {
+      emptyState.remove();
+    }
+
+    const entry = document.createElement('div');
+    entry.className = 'console-entry';
+    entry.innerHTML = `
+      <span class="entry-time">${new Date().toLocaleTimeString()}</span>
+      <span class="entry-event">${payload.event}</span>
+      <span class="entry-component">${payload.component}</span>
+      <span class="entry-detail">${JSON.stringify(payload.detail || {})}</span>
+    `;
+    consoleContent?.appendChild(entry);
+    consoleContent?.scrollTo(0, consoleContent.scrollHeight);
+  }
+
+  // Initialize
+  renderRulesMonitor();
+  updateRulesStatus();
+</script>

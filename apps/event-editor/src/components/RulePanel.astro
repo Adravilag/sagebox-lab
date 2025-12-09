@@ -1,0 +1,2038 @@
+---
+
+---
+
+<aside class="rule-panel" id="rule-panel">
+  <div class="panel-inner">
+    <!-- Header con gradiente -->
+    <div class="panel-header">
+      <div class="header-top">
+        <div class="header-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <div class="header-info">
+          <h2 class="panel-title">Editor de Reglas</h2>
+          <span class="panel-subtitle" id="selected-rule">Nueva regla</span>
+        </div>
+        <button class="header-close" id="close-panel" title="Cerrar panel">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Rule Name con ícono -->
+      <div class="rule-name-field">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 7V4h16v3"></path>
+            <path d="M9 20h6"></path>
+            <path d="M12 4v16"></path>
+          </svg>
+        </div>
+        <input type="text" class="rule-name-input" id="rule-name" placeholder="Nombre de la regla..." value="" />
+      </div>
+    </div>
+
+    <div class="panel-content">
+      <!-- FLOW Visualization -->
+      <div class="flow-container">
+        <!-- EVENT Node -->
+        <div class="flow-node event-node" data-section="event">
+          <div class="node-badge">
+            <span class="badge-icon">⚡</span>
+            <span class="badge-text">EVENTO</span>
+          </div>
+          <div class="node-content">
+            <div class="node-field">
+              <label>Componente</label>
+              <div class="smart-select" id="event-component-wrapper">
+                <select class="node-select" id="event-component">
+                  <option value="">Seleccionar...</option>
+                  <option value="sg-button">sg-button</option>
+                  <option value="sg-dropdown">sg-dropdown</option>
+                  <option value="sg-modal">sg-modal</option>
+                  <option value="sg-select">sg-select</option>
+                  <option value="sg-input">sg-input</option>
+                  <option value="sg-date-picker">sg-date-picker</option>
+                  <option value="sg-tooltip">sg-tooltip</option>
+                  <option value="sg-context-menu">sg-context-menu</option>
+                </select>
+                <div class="select-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="node-field">
+              <label>Tipo de evento</label>
+              <div class="smart-select">
+                <select class="node-select" id="event-type" disabled>
+                  <option value="">Primero selecciona componente</option>
+                </select>
+                <div class="select-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="node-field">
+              <label>Selector <span class="optional">(opcional)</span></label>
+              <input type="text" class="node-input mono" id="event-selector" placeholder="#miBoton, .clase" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow Arrow -->
+        <div class="flow-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19,12 12,19 5,12"></polyline>
+          </svg>
+        </div>
+
+        <!-- CONDITION Node -->
+        <div class="flow-node condition-node" data-section="condition">
+          <div class="node-badge">
+            <span class="badge-icon">🔍</span>
+            <span class="badge-text">CONDICIONES</span>
+            <button class="node-add-btn" id="add-condition" title="Añadir condición">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="node-content">
+            <!-- Condition Selector (hidden by default) -->
+            <div class="condition-selector" id="condition-selector-group" style="display: none;">
+              <div class="smart-select">
+                <select class="node-select" id="condition-preset">
+                  <option value="">Seleccionar condición...</option>
+                  <optgroup label="📦 Del componente" id="condition-component-group"></optgroup>
+                  <optgroup label="🌐 Globales" id="condition-global-group"></optgroup>
+                </select>
+                <div class="select-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conditions List -->
+            <div class="items-container" id="conditions-list">
+              <div class="empty-state">
+                <div class="empty-icon">✓</div>
+                <span>Sin condiciones</span>
+                <small>Siempre se ejecutará</small>
+              </div>
+            </div>
+
+            <!-- Logic Toggle -->
+            <div class="logic-toggle" id="logic-toggle" style="display: none;">
+              <span class="logic-label">Operador:</span>
+              <div class="logic-buttons">
+                <button class="logic-btn active" data-logic="AND">
+                  <span>AND</span>
+                  <small>Todas</small>
+                </button>
+                <button class="logic-btn" data-logic="OR">
+                  <span>OR</span>
+                  <small>Alguna</small>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow Arrow -->
+        <div class="flow-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19,12 12,19 5,12"></polyline>
+          </svg>
+        </div>
+
+        <!-- ACTION Node -->
+        <div class="flow-node action-node" data-section="action">
+          <div class="node-badge">
+            <span class="badge-icon">🎯</span>
+            <span class="badge-text">ACCIONES</span>
+            <button class="node-add-btn" id="add-action" title="Añadir acción">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="node-content">
+            <!-- Action Selector (hidden by default) -->
+            <div class="action-selector" id="action-selector-group" style="display: none;">
+              <div class="smart-select">
+                <select class="node-select" id="action-preset">
+                  <option value="">Seleccionar acción...</option>
+                  <optgroup label="📦 Del componente" id="action-component-group"></optgroup>
+                  <optgroup label="🌐 Globales" id="action-global-group"></optgroup>
+                </select>
+                <div class="select-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions List -->
+            <div class="items-container" id="actions-list">
+              <div class="empty-state warning">
+                <div class="empty-icon">⚠️</div>
+                <span>Sin acciones</span>
+                <small>Añade al menos una</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Output - Colapsable -->
+    <details class="code-output" open>
+      <summary class="code-header">
+        <div class="code-header-left">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16,18 22,12 16,6"></polyline>
+            <polyline points="8,6 2,12 8,18"></polyline>
+          </svg>
+          <span>Código generado</span>
+        </div>
+        <button class="copy-btn" id="copy-code" title="Copiar código">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </summary>
+      <pre class="code-preview" id="code-preview"><code>// Selecciona un evento para comenzar</code></pre>
+    </details>
+
+    <!-- Actions Footer -->
+    <div class="panel-actions">
+      <button class="btn-cancel" id="cancel-rule">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        Cancelar
+      </button>
+      <button class="btn-save" id="save-rule">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20,6 9,17 4,12"></polyline>
+        </svg>
+        Guardar regla
+      </button>
+    </div>
+  </div>
+</aside>
+
+<style is:global>
+  .rule-panel {
+    width: var(--panel-width);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ===== Header ===== */
+  .panel-header {
+    padding: 16px;
+    background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--surface) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    border-radius: 10px;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .header-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .panel-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .panel-subtitle::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .header-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .header-close:hover {
+    background: var(--danger-muted);
+    color: var(--danger);
+  }
+
+  /* Rule Name Field */
+  .rule-name-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all 0.15s;
+  }
+
+  .rule-name-field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+
+  .field-icon {
+    color: var(--text-subtle);
+    flex-shrink: 0;
+  }
+
+  .rule-name-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+  }
+
+  .rule-name-input::placeholder {
+    color: var(--text-subtle);
+  }
+
+  /* ===== Panel Content ===== */
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  /* ===== Flow Container ===== */
+  .flow-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    color: var(--text-subtle);
+    opacity: 0.5;
+  }
+
+  /* ===== Flow Nodes ===== */
+  .flow-node {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .flow-node:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Node Badges */
+  .node-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .event-node .node-badge {
+    background: linear-gradient(90deg, var(--event-muted) 0%, transparent 100%);
+  }
+
+  .condition-node .node-badge {
+    background: linear-gradient(90deg, var(--condition-muted) 0%, transparent 100%);
+  }
+
+  .action-node .node-badge {
+    background: linear-gradient(90deg, var(--action-muted) 0%, transparent 100%);
+  }
+
+  .badge-icon {
+    font-size: 14px;
+  }
+
+  .badge-text {
+    flex: 1;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .event-node .badge-text {
+    color: var(--event-color);
+  }
+  .condition-node .badge-text {
+    color: var(--condition-color);
+  }
+  .action-node .badge-text {
+    color: var(--action-color);
+  }
+
+  .node-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .condition-node .node-add-btn:hover {
+    background: var(--condition-color);
+    border-color: var(--condition-color);
+    color: white;
+  }
+
+  .action-node .node-add-btn:hover {
+    background: var(--action-color);
+    border-color: var(--action-color);
+    color: white;
+  }
+
+  /* Node Content */
+  .node-content {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Node Fields */
+  .node-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .node-field label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .node-field .optional {
+    font-weight: 400;
+    text-transform: none;
+    color: var(--text-subtle);
+  }
+
+  /* Smart Select */
+  .smart-select {
+    position: relative;
+  }
+
+  .node-select {
+    width: 100%;
+    padding: 10px 32px 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    appearance: none;
+    transition: all 0.15s;
+  }
+
+  .node-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+
+  .node-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .select-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-subtle);
+    pointer-events: none;
+  }
+
+  .node-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .node-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+
+  .node-input.mono {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  /* ===== Items Container ===== */
+  .items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 20px;
+    text-align: center;
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .empty-state .empty-icon {
+    font-size: 20px;
+    opacity: 0.5;
+  }
+
+  .empty-state span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .empty-state small {
+    font-size: 11px;
+    color: var(--text-subtle);
+  }
+
+  .empty-state.warning {
+    border-color: var(--action-color);
+    background: var(--action-muted);
+  }
+
+  /* Condition/Action Items */
+  .condition-item,
+  .action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .condition-item:hover,
+  .action-item:hover {
+    border-color: var(--border-hover);
+    background: var(--surface);
+  }
+
+  .item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .item-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .item-type-badge.condition {
+    background: var(--condition-muted);
+    color: var(--condition-color);
+  }
+
+  .item-type-badge.action {
+    background: var(--action-muted);
+    color: var(--action-color);
+  }
+
+  .item-description {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .item-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .item-row select,
+  .item-row input {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .item-row input {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  /* Selector Input with Icon */
+  .selector-input-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .selector-input-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    opacity: 0.4;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v4m0 12v4M2 12h4m12 0h4'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2v4m0 12v4M2 12h4m12 0h4'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .selector-input-wrapper input {
+    width: 100%;
+    padding-left: 30px !important;
+  }
+
+  .selector-input-wrapper input:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-muted);
+  }
+
+  .selector-input-wrapper .selector-hint {
+    position: absolute;
+    right: 8px;
+    font-size: 9px;
+    color: var(--text-subtle);
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 3px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .selector-input-wrapper:focus-within .selector-hint {
+    opacity: 1;
+  }
+
+  .item-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    margin-top: 2px;
+  }
+
+  .item-remove svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .item-remove:hover {
+    background: var(--danger-muted);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  /* Logic Toggle */
+  .logic-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .logic-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .logic-buttons {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .logic-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .logic-btn span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .logic-btn small {
+    font-size: 9px;
+    color: var(--text-subtle);
+  }
+
+  .logic-btn:hover {
+    border-color: var(--condition-color);
+  }
+
+  .logic-btn.active {
+    background: var(--condition-muted);
+    border-color: var(--condition-color);
+  }
+
+  .logic-btn.active span {
+    color: var(--condition-color);
+  }
+
+  .logic-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--condition-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .logic-connector::before,
+  .logic-connector::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin: 0 10px;
+  }
+
+  /* ===== Code Output ===== */
+  .code-output {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .code-header:hover {
+    background: var(--surface-elevated);
+  }
+
+  .code-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .code-header-left svg {
+    color: var(--accent);
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover {
+    background: var(--surface);
+    color: var(--accent);
+  }
+
+  .code-preview {
+    max-height: 150px;
+    overflow: auto;
+    padding: 14px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .code-preview code {
+    display: block;
+    white-space: pre-wrap;
+  }
+
+  /* ===== Panel Actions ===== */
+  .panel-actions {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-elevated);
+  }
+
+  .btn-cancel,
+  .btn-save {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .btn-cancel:hover {
+    background: var(--danger-muted);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
+  }
+
+  .btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.4);
+  }
+
+  .btn-save:active {
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  // Interface para los metadatos
+  interface ComponentMeta {
+    icon: string;
+    events: string[];
+    conditions: string[];
+    actions: string[];
+  }
+
+  interface GlobalItem {
+    id: string;
+    label: string;
+    description: string;
+    param?: string;
+    params?: string[];
+  }
+
+  interface EventEditorMeta {
+    components: Record<string, ComponentMeta>;
+    globalConditions: GlobalItem[];
+    globalActions: GlobalItem[];
+  }
+
+  // Función para obtener metadatos (desde window o fallback)
+  function getEditorMeta(): EventEditorMeta {
+    const w = window as any;
+    if (w.EVENT_EDITOR_META) {
+      return w.EVENT_EDITOR_META;
+    }
+    // Fallback básico
+    return {
+      components: {
+        'sg-button': { icon: '🔘', events: ['sgClick'], conditions: ['isDisabled', 'isLoading'], actions: ['setDisabled', 'setLoading', 'click'] },
+        'sg-modal': { icon: '🪟', events: ['sgOpen', 'sgClose', 'sgCancel'], conditions: ['isOpen'], actions: ['open', 'close'] },
+        'sg-dropdown': { icon: '📂', events: ['sgOpen', 'sgClose'], conditions: ['isOpen'], actions: ['open', 'close', 'toggle'] },
+        'sg-select': { icon: '📋', events: ['sgChange', 'sgSearch'], conditions: ['hasValue', 'isEmpty'], actions: ['setValue', 'clear', 'focus'] },
+        'sg-input': {
+          icon: '✏️',
+          events: ['sgInput', 'sgFocus', 'sgBlur', 'sgChange'],
+          conditions: ['hasValue', 'isEmpty', 'isValid'],
+          actions: ['setValue', 'clear', 'focus', 'blur'],
+        },
+        'sg-date-picker': { icon: '📅', events: ['sgChange', 'sgOpen', 'sgClose'], conditions: ['hasValue'], actions: ['setValue', 'clear', 'open', 'close'] },
+      },
+      globalConditions: [
+        { id: 'element.visible', label: 'Elemento visible', description: 'El elemento está visible' },
+        { id: 'element.hidden', label: 'Elemento oculto', description: 'El elemento está oculto' },
+        { id: 'element.hasClass', label: 'Tiene clase', description: 'Tiene una clase específica', param: 'className' },
+        { id: 'custom', label: 'Condición personalizada', description: 'Código personalizado', param: 'code' },
+      ],
+      globalActions: [
+        { id: 'element.setAttribute', label: 'Establecer atributo', description: 'Establece un atributo', params: ['attr', 'value'] },
+        { id: 'element.addClass', label: 'Añadir clase', description: 'Añade una clase CSS', param: 'className' },
+        { id: 'element.show', label: 'Mostrar', description: 'Muestra el elemento' },
+        { id: 'element.hide', label: 'Ocultar', description: 'Oculta el elemento' },
+        { id: 'emit', label: 'Emitir evento', description: 'Emite un evento', params: ['eventName', 'detail'] },
+        { id: 'navigate', label: 'Navegar', description: 'Navega a URL', param: 'url' },
+        { id: 'custom', label: 'Código personalizado', description: 'Código JS', param: 'code' },
+      ],
+    };
+  }
+
+  // Descripciones de condiciones
+  const conditionDescriptions: Record<string, string> = {
+    // Component specific
+    'isDisabled': 'Elemento está deshabilitado',
+    'isLoading': 'Elemento está cargando',
+    'isOpen': 'Elemento está abierto',
+    'hasValue': 'Tiene un valor',
+    'isEmpty': 'Está vacío',
+    'isValid': 'Es válido',
+    'isInvalid': 'Es inválido',
+    'isFocused': 'Tiene el foco',
+    'isChecked': 'Está marcado',
+    'isIndeterminate': 'Estado indeterminado',
+    'isDark': 'Tema oscuro activo',
+    'isExpanded': 'Está expandido',
+    'hasSelection': 'Tiene selección',
+    'isEditing': 'Está editando',
+    // Global
+    'element.visible': 'El elemento es visible',
+    'element.hidden': 'El elemento está oculto',
+    'element.hasClass': 'El elemento tiene una clase',
+    'element.attributeEquals': 'Un atributo tiene cierto valor',
+    'element.exists': 'El elemento existe',
+    'element.matches': 'Coincide con selector',
+    'form.isValid': 'El formulario es válido',
+    'form.isDirty': 'El formulario ha sido modificado',
+    'value.isEmpty': 'El valor está vacío',
+    'value.isNotEmpty': 'El valor no está vacío',
+    'value.equals': 'El valor es igual a',
+    'value.contains': 'El valor contiene',
+  };
+
+  // Descripciones de acciones
+  const actionDescriptions: Record<string, string> = {
+    // Component specific
+    'setDisabled': 'Establecer deshabilitado',
+    'setLoading': 'Establecer estado de carga',
+    'click': 'Simular click',
+    'open': 'Abrir',
+    'close': 'Cerrar',
+    'toggle': 'Alternar estado',
+    'setValue': 'Establecer valor',
+    'clear': 'Limpiar',
+    'focus': 'Dar foco',
+    'blur': 'Quitar foco',
+    'validate': 'Validar',
+    'selectAll': 'Seleccionar todo',
+    'check': 'Marcar',
+    'uncheck': 'Desmarcar',
+    'setTheme': 'Cambiar tema',
+    'expand': 'Expandir',
+    'collapse': 'Colapsar',
+    'scrollTo': 'Desplazar a',
+    'refresh': 'Refrescar',
+    'save': 'Guardar',
+    'cancel': 'Cancelar',
+    // Global
+    'setAttribute': 'Cambiar atributo',
+    'removeAttribute': 'Eliminar atributo',
+    'addClass': 'Añadir clase',
+    'removeClass': 'Eliminar clase',
+    'toggleClass': 'Alternar clase',
+    'setStyle': 'Cambiar estilo',
+    'show': 'Mostrar elemento',
+    'hide': 'Ocultar elemento',
+    'emit': 'Emitir evento',
+    'preventDefault': 'Prevenir acción por defecto',
+    'stopPropagation': 'Detener propagación',
+    'console.log': 'Loguear en consola',
+    'console.warn': 'Advertencia en consola',
+    'console.error': 'Error en consola',
+    'alert': 'Mostrar alerta',
+    'confirm': 'Mostrar confirmación',
+    'navigate': 'Navegar a URL',
+    'reload': 'Recargar página',
+    'localStorage.set': 'Guardar en localStorage',
+    'localStorage.remove': 'Eliminar de localStorage',
+    'sessionStorage.set': 'Guardar en sessionStorage',
+    'sessionStorage.remove': 'Eliminar de sessionStorage',
+    'fetch': 'Hacer petición HTTP',
+    'delay': 'Esperar (ms)',
+    'custom': 'Código personalizado',
+  };
+
+  // Operators
+  const operators = [
+    { value: 'equals', label: '=' },
+    { value: 'notEquals', label: '≠' },
+    { value: 'contains', label: 'contiene' },
+    { value: 'greaterThan', label: '>' },
+    { value: 'lessThan', label: '<' },
+    { value: 'matches', label: 'coincide' },
+    { value: 'startsWith', label: 'empieza con' },
+    { value: 'endsWith', label: 'termina con' },
+  ];
+
+  const componentSelect = document.getElementById('event-component') as HTMLSelectElement;
+  const eventSelect = document.getElementById('event-type') as HTMLSelectElement;
+  const conditionPreset = document.getElementById('condition-preset') as HTMLSelectElement;
+  const actionPreset = document.getElementById('action-preset') as HTMLSelectElement;
+  const conditionsList = document.getElementById('conditions-list');
+  const actionsList = document.getElementById('actions-list');
+  const codePreview = document.getElementById('code-preview');
+  const logicToggle = document.getElementById('logic-toggle');
+  const conditionSelectorGroup = document.getElementById('condition-selector-group');
+  const actionSelectorGroup = document.getElementById('action-selector-group');
+
+  let currentLogic = 'AND';
+  let conditions: any[] = [];
+  let actions: any[] = [];
+  let selectedComponent = '';
+
+  // Populate component dropdown from metadata
+  function populateComponentSelect() {
+    const meta = getEditorMeta();
+    if (!componentSelect) return;
+
+    // Clear existing options except the first
+    componentSelect.innerHTML = '<option value="">Seleccionar componente...</option>';
+
+    Object.entries(meta.components).forEach(([name, data]) => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = `${data.icon} ${name}`;
+      componentSelect.appendChild(option);
+    });
+  }
+
+  // Update events when component changes
+  function updateEventSelect(component: string) {
+    const meta = getEditorMeta();
+    if (!eventSelect) return;
+
+    eventSelect.innerHTML = '<option value="">Seleccionar evento...</option>';
+
+    if (component && meta.components[component]) {
+      eventSelect.disabled = false;
+      meta.components[component].events.forEach(evt => {
+        const option = document.createElement('option');
+        option.value = evt;
+        option.textContent = evt;
+        eventSelect.appendChild(option);
+      });
+    } else {
+      eventSelect.disabled = true;
+    }
+  }
+
+  // Update condition presets
+  function updateConditionPresets(component: string) {
+    const meta = getEditorMeta();
+    const componentGroup = document.getElementById('condition-component-group') as HTMLOptGroupElement;
+    const globalGroup = document.getElementById('condition-global-group') as HTMLOptGroupElement;
+
+    if (!componentGroup || !globalGroup) return;
+
+    // Clear groups
+    componentGroup.innerHTML = '';
+    globalGroup.innerHTML = '';
+
+    // Add component conditions (these are simple strings)
+    if (component && meta.components[component]) {
+      meta.components[component].conditions.forEach(cond => {
+        const option = document.createElement('option');
+        option.value = cond;
+        option.textContent = conditionDescriptions[cond] || cond;
+        componentGroup.appendChild(option);
+      });
+    }
+
+    // Add global conditions (these are objects with id/label)
+    meta.globalConditions.forEach(cond => {
+      const option = document.createElement('option');
+      option.value = cond.id;
+      option.textContent = cond.label;
+      option.title = cond.description;
+      globalGroup.appendChild(option);
+    });
+
+    // Show/hide selector
+    if (conditionSelectorGroup) {
+      conditionSelectorGroup.style.display = component ? 'block' : 'none';
+    }
+    if (conditionPreset) {
+      conditionPreset.value = '';
+    }
+  }
+
+  // Update action presets
+  function updateActionPresets(component: string) {
+    const meta = getEditorMeta();
+    const componentGroup = document.getElementById('action-component-group') as HTMLOptGroupElement;
+    const globalGroup = document.getElementById('action-global-group') as HTMLOptGroupElement;
+
+    if (!componentGroup || !globalGroup) return;
+
+    // Clear groups
+    componentGroup.innerHTML = '';
+    globalGroup.innerHTML = '';
+
+    // Add component actions (these are simple strings)
+    if (component && meta.components[component]) {
+      meta.components[component].actions.forEach(action => {
+        const option = document.createElement('option');
+        option.value = action;
+        option.textContent = actionDescriptions[action] || action;
+        componentGroup.appendChild(option);
+      });
+    }
+
+    // Add global actions (these are objects with id/label)
+    meta.globalActions.forEach(action => {
+      const option = document.createElement('option');
+      option.value = action.id;
+      option.textContent = action.label;
+      option.title = action.description;
+      globalGroup.appendChild(option);
+    });
+
+    // Show/hide selector
+    if (actionSelectorGroup) {
+      actionSelectorGroup.style.display = component ? 'block' : 'none';
+    }
+    if (actionPreset) {
+      actionPreset.value = '';
+    }
+  }
+
+  // Component selection change
+  componentSelect?.addEventListener('change', () => {
+    selectedComponent = componentSelect.value;
+    updateEventSelect(selectedComponent);
+    updateConditionPresets(selectedComponent);
+    updateActionPresets(selectedComponent);
+    updateCodePreview();
+  });
+
+  eventSelect?.addEventListener('change', updateCodePreview);
+
+  // Add condition from preset
+  conditionPreset?.addEventListener('change', () => {
+    const condType = conditionPreset.value;
+    if (!condType) return;
+
+    // Find description - check if it's a global condition (object) or component condition (string)
+    const meta = getEditorMeta();
+    const globalCond = meta.globalConditions.find(c => c.id === condType);
+    const description = globalCond?.label || conditionDescriptions[condType] || condType;
+
+    const id = Date.now();
+    conditions.push({
+      id,
+      type: condType,
+      target: '',
+      operator: 'equals',
+      value: '',
+      description,
+    });
+    renderConditions();
+    updateCodePreview();
+    conditionPreset.value = '';
+  });
+
+  // Add action from preset
+  actionPreset?.addEventListener('change', () => {
+    const actionType = actionPreset.value;
+    if (!actionType) return;
+
+    // Find description - check if it's a global action (object) or component action (string)
+    const meta = getEditorMeta();
+    const globalAction = meta.globalActions.find(a => a.id === actionType);
+    const description = globalAction?.label || actionDescriptions[actionType] || actionType;
+
+    const id = Date.now();
+    actions.push({
+      id,
+      type: actionType,
+      target: '',
+      params: {},
+      description,
+    });
+    renderActions();
+    updateCodePreview();
+    actionPreset.value = '';
+  });
+
+  // Add condition manually
+  document.getElementById('add-condition')?.addEventListener('click', () => {
+    const id = Date.now();
+    conditions.push({ id, type: 'custom', target: '', operator: 'equals', value: '', description: 'Condición personalizada' });
+    renderConditions();
+    updateCodePreview();
+  });
+
+  // Add action manually
+  document.getElementById('add-action')?.addEventListener('click', () => {
+    const id = Date.now();
+    actions.push({ id, type: 'custom', target: '', params: {}, description: 'Acción personalizada' });
+    renderActions();
+    updateCodePreview();
+  });
+
+  // Logic toggle
+  document.querySelectorAll('.logic-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.logic-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLogic = btn.getAttribute('data-logic') || 'AND';
+      updateCodePreview();
+    });
+  });
+
+  function renderConditions() {
+    if (!conditionsList) return;
+
+    if (conditions.length === 0) {
+      conditionsList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">✓</div>
+          <span>Sin condiciones</span>
+          <small>Siempre se ejecutará</small>
+        </div>
+      `;
+      if (logicToggle) logicToggle.style.display = 'none';
+      return;
+    }
+
+    if (logicToggle) logicToggle.style.display = conditions.length > 1 ? 'flex' : 'none';
+
+    conditionsList.innerHTML = conditions
+      .map(
+        (cond, index) => `
+      <div class="condition-item" data-id="${cond.id}">
+        <div class="item-content">
+          <div class="item-header">
+            <span class="item-type-badge condition">${cond.type}</span>
+            <span class="item-description">${cond.description}</span>
+          </div>
+          ${getConditionInputsHTML(cond)}
+        </div>
+        <button class="item-remove" data-remove="${cond.id}" title="Eliminar condición">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      ${index < conditions.length - 1 ? `<div class="logic-connector">${currentLogic}</div>` : ''}
+    `,
+      )
+      .join('');
+
+    // Attach event listeners
+    conditionsList.querySelectorAll('.condition-item').forEach(item => {
+      const id = parseInt(item.getAttribute('data-id') || '0');
+
+      item.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener('change', e => {
+          const field = (e.target as HTMLElement).getAttribute('data-field');
+          const cond = conditions.find(c => c.id === id);
+          if (cond && field) {
+            cond[field] = (e.target as HTMLInputElement).value;
+            updateCodePreview();
+          }
+        });
+      });
+    });
+
+    conditionsList.querySelectorAll('.item-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseInt(btn.getAttribute('data-remove') || '0');
+        conditions = conditions.filter(c => c.id !== id);
+        renderConditions();
+        updateCodePreview();
+      });
+    });
+  }
+
+  function getConditionInputsHTML(cond: any): string {
+    // Para condiciones simples de componente que no necesitan parámetros
+    const simpleConditions = [
+      'isDisabled',
+      'isLoading',
+      'isOpen',
+      'hasValue',
+      'isEmpty',
+      'isValid',
+      'isInvalid',
+      'isFocused',
+      'isChecked',
+      'isDark',
+      'isExpanded',
+      'hasSelection',
+      'isEditing',
+    ];
+
+    if (simpleConditions.includes(cond.type)) {
+      return `
+        <div class="item-row">
+          <div class="selector-input-wrapper">
+            <input type="text" data-field="target" placeholder="#id o .clase (opcional)" value="${cond.target || ''}" title="Selector CSS del elemento a verificar. Ej: #mi-boton, .mi-clase" />
+            <span class="selector-hint">CSS</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Condiciones que necesitan un valor
+    if (cond.type === 'element.hasClass' || cond.type === 'value.contains' || cond.type === 'value.equals') {
+      return `
+        <div class="item-row">
+          <div class="selector-input-wrapper">
+            <input type="text" data-field="target" placeholder="#id o .clase" value="${cond.target || ''}" title="Selector CSS del elemento" />
+            <span class="selector-hint">CSS</span>
+          </div>
+          <input type="text" data-field="value" placeholder="Valor a comparar" value="${cond.value || ''}" />
+        </div>
+      `;
+    }
+
+    // Condiciones con operador
+    if (cond.type === 'element.attributeEquals' || cond.type === 'custom') {
+      return `
+        <div class="item-row">
+          <div class="selector-input-wrapper">
+            <input type="text" data-field="target" placeholder="#id o expresión" value="${cond.target || ''}" />
+            <span class="selector-hint">CSS</span>
+          </div>
+        </div>
+        <div class="item-row">
+          <select data-field="operator">
+            ${operators.map(o => `<option value="${o.value}" ${cond.operator === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
+          </select>
+          <input type="text" data-field="value" placeholder="Valor" value="${cond.value || ''}" />
+        </div>
+      `;
+    }
+
+    // Default
+    return `
+      <div class="item-row">
+        <div class="selector-input-wrapper">
+          <input type="text" data-field="target" placeholder="#id o .clase" value="${cond.target || ''}" />
+          <span class="selector-hint">CSS</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderActions() {
+    if (!actionsList) return;
+
+    if (actions.length === 0) {
+      actionsList.innerHTML = `
+        <div class="empty-state warning">
+          <div class="empty-icon">⚠️</div>
+          <span>Sin acciones</span>
+          <small>Añade al menos una</small>
+        </div>
+      `;
+      return;
+    }
+
+    actionsList.innerHTML = actions
+      .map(
+        action => `
+      <div class="action-item" data-id="${action.id}">
+        <div class="item-content">
+          <div class="item-header">
+            <span class="item-type-badge action">${action.type}</span>
+            <span class="item-description">${action.description}</span>
+          </div>
+          ${getActionParamsHTML(action)}
+        </div>
+        <button class="item-remove" data-remove="${action.id}" title="Eliminar acción">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    `,
+      )
+      .join('');
+
+    // Attach event listeners
+    actionsList.querySelectorAll('.action-item').forEach(item => {
+      const id = parseInt(item.getAttribute('data-id') || '0');
+
+      item.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener('change', e => {
+          const field = (e.target as HTMLElement).getAttribute('data-field');
+          const action = actions.find(a => a.id === id);
+          if (action && field) {
+            if (field.startsWith('params.')) {
+              const paramKey = field.replace('params.', '');
+              action.params[paramKey] = (e.target as HTMLInputElement).value;
+            } else {
+              action[field] = (e.target as HTMLInputElement).value;
+            }
+            updateCodePreview();
+          }
+        });
+      });
+    });
+
+    actionsList.querySelectorAll('.item-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseInt(btn.getAttribute('data-remove') || '0');
+        actions = actions.filter(a => a.id !== id);
+        renderActions();
+        updateCodePreview();
+      });
+    });
+  }
+
+  function getActionParamsHTML(action: any): string {
+    // Acciones simples de componente sin parámetros
+    const noParamActions = [
+      'click',
+      'open',
+      'close',
+      'toggle',
+      'clear',
+      'focus',
+      'blur',
+      'validate',
+      'selectAll',
+      'check',
+      'uncheck',
+      'expand',
+      'collapse',
+      'refresh',
+      'save',
+      'cancel',
+      'show',
+      'hide',
+      'preventDefault',
+      'stopPropagation',
+      'reload',
+    ];
+
+    if (noParamActions.includes(action.type)) {
+      return `
+        <div class="item-row">
+          <div class="selector-input-wrapper">
+            <input type="text" data-field="target" placeholder="#id o .clase (opcional)" value="${action.target || ''}" title="Elemento destino. Si vacío, usa el elemento que disparó el evento" />
+            <span class="selector-hint">CSS</span>
+          </div>
+        </div>
+      `;
+    }
+
+    switch (action.type) {
+      case 'setAttribute':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+          </div>
+          <div class="item-row">
+            <input type="text" data-field="params.attribute" placeholder="disabled, hidden..." value="${action.params.attribute || ''}" />
+            <input type="text" data-field="params.value" placeholder="Valor" value="${action.params.value || ''}" />
+          </div>
+        `;
+      case 'removeAttribute':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+            <input type="text" data-field="params.attribute" placeholder="atributo" value="${action.params.attribute || ''}" style="max-width: 100px;" />
+          </div>
+        `;
+      case 'addClass':
+      case 'removeClass':
+      case 'toggleClass':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+            <input type="text" data-field="params.className" placeholder="mi-clase" value="${action.params.className || ''}" style="max-width: 120px;" />
+          </div>
+        `;
+      case 'setStyle':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+          </div>
+          <div class="item-row">
+            <input type="text" data-field="params.property" placeholder="color, display..." value="${action.params.property || ''}" />
+            <input type="text" data-field="params.value" placeholder="red, none..." value="${action.params.value || ''}" />
+          </div>
+        `;
+      case 'setValue':
+      case 'setDisabled':
+      case 'setLoading':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+            <input type="text" data-field="params.value" placeholder="true, false, texto..." value="${action.params.value || ''}" style="max-width: 120px;" />
+          </div>
+        `;
+      case 'setTheme':
+        return `
+          <div class="item-row">
+            <select data-field="params.theme">
+              <option value="light" ${action.params.theme === 'light' ? 'selected' : ''}>Claro</option>
+              <option value="dark" ${action.params.theme === 'dark' ? 'selected' : ''}>Oscuro</option>
+              <option value="auto" ${action.params.theme === 'auto' ? 'selected' : ''}>Auto</option>
+            </select>
+          </div>
+        `;
+      case 'emit':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id (opcional)" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+          </div>
+          <div class="item-row">
+            <input type="text" data-field="params.eventName" placeholder="mi-evento" value="${action.params.eventName || ''}" />
+            <input type="text" data-field="params.detail" placeholder="{ key: value }" value="${action.params.detail || ''}" style="font-family: var(--font-mono); font-size: 10px;" />
+          </div>
+        `;
+      case 'console.log':
+      case 'console.warn':
+      case 'console.error':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.message" placeholder="Mensaje a mostrar en consola" value="${action.params.message || ''}" style="font-family: var(--font-mono);" />
+          </div>
+        `;
+      case 'alert':
+      case 'confirm':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.message" placeholder="Mensaje para el usuario" value="${action.params.message || ''}" />
+          </div>
+        `;
+      case 'navigate':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.url" placeholder="/pagina o https://..." value="${action.params.url || ''}" style="font-family: var(--font-mono);" />
+          </div>
+        `;
+      case 'localStorage.set':
+      case 'sessionStorage.set':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.key" placeholder="clave" value="${action.params.key || ''}" style="font-family: var(--font-mono);" />
+            <input type="text" data-field="params.value" placeholder="valor" value="${action.params.value || ''}" />
+          </div>
+        `;
+      case 'localStorage.remove':
+      case 'sessionStorage.remove':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.key" placeholder="clave a eliminar" value="${action.params.key || ''}" style="font-family: var(--font-mono);" />
+          </div>
+        `;
+      case 'fetch':
+        return `
+          <div class="item-row">
+            <select data-field="params.method" style="max-width: 90px;">
+              <option value="GET" ${action.params.method === 'GET' ? 'selected' : ''}>GET</option>
+              <option value="POST" ${action.params.method === 'POST' ? 'selected' : ''}>POST</option>
+              <option value="PUT" ${action.params.method === 'PUT' ? 'selected' : ''}>PUT</option>
+              <option value="DELETE" ${action.params.method === 'DELETE' ? 'selected' : ''}>DELETE</option>
+            </select>
+            <input type="text" data-field="params.url" placeholder="/api/endpoint" value="${action.params.url || ''}" style="font-family: var(--font-mono);" />
+          </div>
+        `;
+      case 'delay':
+        return `
+          <div class="item-row">
+            <input type="number" data-field="params.ms" placeholder="Milisegundos" value="${action.params.ms || '1000'}" />
+          </div>
+        `;
+      case 'scrollTo':
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+            <select data-field="params.behavior" style="max-width: 110px;">
+              <option value="smooth" ${action.params.behavior === 'smooth' ? 'selected' : ''}>Suave</option>
+              <option value="instant" ${action.params.behavior === 'instant' ? 'selected' : ''}>Instantáneo</option>
+            </select>
+          </div>
+        `;
+      case 'custom':
+        return `
+          <div class="item-row">
+            <input type="text" data-field="params.code" placeholder="console.log('Código JS...')" value="${action.params.code || ''}" style="font-family: var(--font-mono); width: 100%; font-size: 10px;" />
+          </div>
+        `;
+      default:
+        return `
+          <div class="item-row">
+            <div class="selector-input-wrapper">
+              <input type="text" data-field="target" placeholder="#id o .clase" value="${action.target || ''}" />
+              <span class="selector-hint">CSS</span>
+            </div>
+          </div>
+        `;
+    }
+  }
+
+  function updateCodePreview() {
+    if (!codePreview) return;
+
+    const component = componentSelect?.value;
+    const event = eventSelect?.value;
+    const selector = (document.getElementById('event-selector') as HTMLInputElement)?.value;
+    const ruleName = (document.getElementById('rule-name') as HTMLInputElement)?.value || 'myRule';
+
+    if (!component || !event) {
+      codePreview.innerHTML = '<code>// Selecciona un componente y evento</code>';
+      return;
+    }
+
+    // Collect all unique selectors used in conditions and actions
+    const usedSelectors = new Set<string>();
+    conditions.forEach(c => {
+      if (c.target) usedSelectors.add(c.target);
+    });
+    actions.forEach(a => {
+      if (a.target) usedSelectors.add(a.target);
+    });
+
+    let code = `// ${ruleName}\n`;
+    code += `document.querySelectorAll('${selector || component}').forEach(el => {\n`;
+    code += `  el.addEventListener('${event}', (e) => {\n`;
+
+    // Declare variables for repeated selectors
+    const selectorVars: Record<string, string> = {};
+    if (usedSelectors.size > 0) {
+      let varIndex = 0;
+      usedSelectors.forEach(sel => {
+        const varName = sel.startsWith('#') ? sel.slice(1).replace(/-([a-z])/g, (_, c) => c.toUpperCase()) : `target${varIndex > 0 ? varIndex : ''}`;
+        selectorVars[sel] = varName;
+        code += `    const ${varName} = document.querySelector('${sel}');\n`;
+        varIndex++;
+      });
+      code += '\n';
+    }
+
+    // Conditions
+    if (conditions.length > 0) {
+      const conditionCode = conditions.map(c => generateConditionCode(c, selectorVars)).join(currentLogic === 'AND' ? ' && ' : ' || ');
+      code += `    if (${conditionCode}) {\n`;
+    }
+
+    // Actions
+    const indent = conditions.length > 0 ? '      ' : '    ';
+    actions.forEach(action => {
+      code += indent + generateActionCode(action, selectorVars) + '\n';
+    });
+
+    if (conditions.length > 0) {
+      code += `    }\n`;
+    }
+
+    code += `  });\n`;
+    code += `});`;
+
+    codePreview.innerHTML = `<code>${escapeHtml(code)}</code>`;
+  }
+
+  function generateConditionCode(cond: any, selectorVars: Record<string, string> = {}): string {
+    const target = cond.target ? selectorVars[cond.target] || `document.querySelector('${cond.target}')` : 'el';
+
+    // Condiciones simples de componente
+    switch (cond.type) {
+      case 'isDisabled':
+        return `${target}?.disabled`;
+      case 'isLoading':
+        return `${target}?.loading`;
+      case 'isOpen':
+        return `${target}?.open`;
+      case 'hasValue':
+        return `!!${target}?.value`;
+      case 'isEmpty':
+        return `!${target}?.value`;
+      case 'isValid':
+        return `${target}?.checkValidity?.()`;
+      case 'isInvalid':
+        return `!${target}?.checkValidity?.()`;
+      case 'isFocused':
+        return `document.activeElement === ${target}`;
+      case 'isChecked':
+        return `${target}?.checked`;
+      case 'isDark':
+        return `${target}?.theme === 'dark'`;
+      case 'isExpanded':
+        return `${target}?.expanded`;
+      case 'element.visible':
+        return `${target}?.offsetParent !== null`;
+      case 'element.hidden':
+        return `${target}?.offsetParent === null`;
+      case 'element.hasClass':
+        return `${target}?.classList.contains('${cond.value}')`;
+      case 'element.attributeEquals':
+        return `${target}?.getAttribute('${cond.target}') ${getOperatorSymbol(cond.operator)} '${cond.value}'`;
+      case 'element.exists':
+        return `!!${target}`;
+      case 'value.isEmpty':
+        return `!${target}?.value`;
+      case 'value.isNotEmpty':
+        return `!!${target}?.value`;
+      case 'value.equals':
+        return `${target}?.value === '${cond.value}'`;
+      case 'value.contains':
+        return `${target}?.value?.includes('${cond.value}')`;
+      case 'custom':
+      default:
+        return `${cond.target} ${getOperatorSymbol(cond.operator)} ${JSON.stringify(cond.value)}`;
+    }
+  }
+
+  function getOperatorSymbol(op: string): string {
+    const map: Record<string, string> = {
+      equals: '===',
+      notEquals: '!==',
+      contains: '.includes',
+      greaterThan: '>',
+      lessThan: '<',
+      matches: '.match',
+      startsWith: '.startsWith',
+      endsWith: '.endsWith',
+    };
+    return map[op] || '===';
+  }
+
+  function generateActionCode(action: any, selectorVars: Record<string, string> = {}): string {
+    const target = action.target ? selectorVars[action.target] || `document.querySelector('${action.target}')` : 'el';
+
+    switch (action.type) {
+      // Acciones simples
+      case 'click':
+        return `${target}?.click();`;
+      case 'open':
+        return `if (${target}) ${target}.open?.() ?? (${target}.open = true);`;
+      case 'close':
+        return `if (${target}) ${target}.close?.() ?? (${target}.open = false);`;
+      case 'toggle':
+        return `if (${target}) ${target}.toggle?.() ?? (${target}.open = !${target}.open);`;
+      case 'clear':
+        return `if (${target}) ${target}.value = '';`;
+      case 'focus':
+        return `${target}?.focus();`;
+      case 'blur':
+        return `${target}?.blur();`;
+      case 'validate':
+        return `${target}?.checkValidity();`;
+      case 'selectAll':
+        return `${target}?.select();`;
+      case 'check':
+        return `if (${target}) ${target}.checked = true;`;
+      case 'uncheck':
+        return `if (${target}) ${target}.checked = false;`;
+      case 'expand':
+        return `${target}.expanded = true;`;
+      case 'collapse':
+        return `${target}.expanded = false;`;
+      case 'show':
+        return `${target}.style.display = '';`;
+      case 'hide':
+        return `${target}.style.display = 'none';`;
+      case 'preventDefault':
+        return `e.preventDefault();`;
+      case 'stopPropagation':
+        return `e.stopPropagation();`;
+      case 'reload':
+        return `window.location.reload();`;
+      case 'refresh':
+        return `${target}?.refresh?.();`;
+      case 'save':
+        return `${target}?.save?.();`;
+      case 'cancel':
+        return `${target}?.cancel?.();`;
+
+      // Acciones con parámetros
+      case 'setAttribute':
+        return `${target}?.setAttribute('${action.params.attribute || 'attr'}', '${action.params.value || ''}');`;
+      case 'removeAttribute':
+        return `${target}?.removeAttribute('${action.params.attribute || 'attr'}');`;
+      case 'addClass':
+        return `${target}?.classList.add('${action.params.className || 'class'}');`;
+      case 'removeClass':
+        return `${target}?.classList.remove('${action.params.className || 'class'}');`;
+      case 'toggleClass':
+        return `${target}?.classList.toggle('${action.params.className || 'class'}');`;
+      case 'setStyle':
+        return `${target}.style.${action.params.property || 'display'} = '${action.params.value || ''}';`;
+      case 'setValue':
+        return `${target}.value = '${action.params.value || ''}';`;
+      case 'setDisabled':
+        return `${target}.disabled = ${action.params.value || 'true'};`;
+      case 'setLoading':
+        return `${target}.loading = ${action.params.value || 'true'};`;
+      case 'setTheme':
+        return `${target}.theme = '${action.params.theme || 'auto'}';`;
+      case 'emit':
+        return `${target}?.dispatchEvent(new CustomEvent('${action.params.eventName || 'event'}', { detail: ${action.params.detail || '{}'} }));`;
+      case 'console.log':
+        return `console.log(${action.params.message ? `'${action.params.message}'` : 'e.detail'});`;
+      case 'console.warn':
+        return `console.warn(${action.params.message ? `'${action.params.message}'` : 'e.detail'});`;
+      case 'console.error':
+        return `console.error(${action.params.message ? `'${action.params.message}'` : 'e.detail'});`;
+      case 'alert':
+        return `alert('${action.params.message || ''}');`;
+      case 'confirm':
+        return `if (confirm('${action.params.message || ''}')) { /* continuar */ }`;
+      case 'navigate':
+        return `window.location.href = '${action.params.url || '/'}';`;
+      case 'localStorage.set':
+        return `localStorage.setItem('${action.params.key || 'key'}', '${action.params.value || ''}');`;
+      case 'localStorage.remove':
+        return `localStorage.removeItem('${action.params.key || 'key'}');`;
+      case 'sessionStorage.set':
+        return `sessionStorage.setItem('${action.params.key || 'key'}', '${action.params.value || ''}');`;
+      case 'sessionStorage.remove':
+        return `sessionStorage.removeItem('${action.params.key || 'key'}');`;
+      case 'fetch':
+        return `fetch('${action.params.url || '/api'}', { method: '${action.params.method || 'GET'}' });`;
+      case 'delay':
+        return `await new Promise(r => setTimeout(r, ${action.params.ms || 1000}));`;
+      case 'scrollTo':
+        return `${target}?.scrollIntoView({ behavior: '${action.params.behavior || 'smooth'}' });`;
+      case 'custom':
+        return action.params.code || '// código personalizado';
+      default:
+        return '// acción';
+    }
+  }
+
+  function escapeHtml(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  // Copy code
+  document.getElementById('copy-code')?.addEventListener('click', async () => {
+    const code = codePreview?.textContent || '';
+    try {
+      await navigator.clipboard.writeText(code);
+      const btn = document.getElementById('copy-code');
+      if (btn) {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>`;
+        setTimeout(() => {
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        }, 2000);
+      }
+    } catch {
+      console.error('Failed to copy');
+    }
+  });
+
+  // Save rule
+  document.getElementById('save-rule')?.addEventListener('click', () => {
+    const rule = {
+      id: Date.now(),
+      name: (document.getElementById('rule-name') as HTMLInputElement)?.value || 'Nueva regla',
+      enabled: true,
+      trigger: {
+        component: componentSelect?.value,
+        event: eventSelect?.value,
+        selector: (document.getElementById('event-selector') as HTMLInputElement)?.value,
+      },
+      conditions,
+      conditionLogic: currentLogic,
+      actions,
+    };
+
+    document.dispatchEvent(new CustomEvent('event-editor:rule-saved', { detail: rule }));
+  });
+
+  // Cancel
+  document.getElementById('cancel-rule')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('event-editor:rule-cancelled'));
+  });
+
+  // Listen for component selection from sidebar
+  document.addEventListener('event-editor:component-selected', ((e: CustomEvent) => {
+    const { component } = e.detail;
+    if (componentSelect) {
+      componentSelect.value = component;
+      componentSelect.dispatchEvent(new Event('change'));
+    }
+  }) as EventListener);
+
+  // Initialize
+  populateComponentSelect();
+</script>

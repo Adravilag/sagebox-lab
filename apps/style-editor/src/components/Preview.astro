@@ -1,0 +1,819 @@
+---
+
+---
+
+<div class="preview-container">
+  <!-- URL Bar -->
+  <div class="url-bar">
+    <div class="url-input-group">
+      <svg class="url-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <input 
+        type="text" 
+        class="url-input" 
+        id="preview-url" 
+        value="http://localhost:4200" 
+        placeholder="http://localhost:4200"
+      />
+      <button class="url-btn" id="btn-reload" title="Recargar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 16h5v5"/>
+        </svg>
+      </button>
+      <button class="url-btn" id="btn-open-external" title="Abrir en navegador">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15,3 21,3 21,9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      </button>
+    </div>
+    <div class="connection-status" id="connection-status">
+      <span class="status-dot"></span>
+      <span class="status-text">Conectando...</span>
+      <a href="/setup" class="setup-link" id="setup-link" title="Configurar bridge">?</a>
+    </div>
+  </div>
+
+  <div class="preview-wrapper" id="preview-wrapper">
+    <div class="preview-frame" id="preview-frame" data-viewport="desktop">
+      <!-- iframe para renderizar la app real (cross-origin, comunicación via postMessage) -->
+      <iframe 
+        id="preview-iframe"
+        src="http://localhost:4200"
+        title="Preview"
+      ></iframe>
+      
+      <!-- Overlay para selección de elementos -->
+      <div class="selection-overlay" id="selection-overlay"></div>
+      
+      <!-- Resize handles -->
+      <div class="resize-handle resize-handle-e" data-direction="e"></div>
+      <div class="resize-handle resize-handle-s" data-direction="s"></div>
+      <div class="resize-handle resize-handle-se" data-direction="se"></div>
+    </div>
+    
+    <div class="preview-dimensions" id="preview-dimensions">
+      <span id="dimension-width">--</span> × <span id="dimension-height">--</span>
+    </div>
+  </div>
+  
+  <div class="preview-toolbar">
+    <label class="toolbar-item">
+      <input type="checkbox" id="inspect-mode" />
+      <span>🎯 Inspeccionar</span>
+    </label>
+    <label class="toolbar-item">
+      <input type="checkbox" id="show-guides" />
+      <span>Guías</span>
+    </label>
+    <div class="toolbar-separator"></div>
+    <div class="zoom-control">
+      <button class="zoom-btn" id="zoom-out">−</button>
+      <span class="zoom-value" id="zoom-value">100%</span>
+      <button class="zoom-btn" id="zoom-in">+</button>
+    </div>
+    <div class="toolbar-separator"></div>
+    <span class="toolbar-hint">Tip: Activa "Inspeccionar" y haz click en un elemento</span>
+  </div>
+</div>
+
+<style>
+  .preview-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* URL Bar */
+  .url-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+
+  .url-input-group {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 600px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .url-input-group:focus-within {
+    border-color: var(--accent);
+  }
+
+  .url-icon {
+    color: var(--text-subtle);
+    flex-shrink: 0;
+  }
+
+  .url-input {
+    flex: 1;
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  .url-input:focus {
+    outline: none;
+  }
+
+  .url-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .url-btn:hover {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warning);
+    animation: pulse 1.5s infinite;
+  }
+
+  .connection-status.connected .status-dot {
+    background: var(--success);
+    animation: none;
+  }
+
+  .connection-status.error .status-dot {
+    background: var(--danger);
+    animation: none;
+  }
+
+  .setup-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--surface-elevated);
+    border-radius: 50%;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 4px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .setup-link:hover {
+    background: var(--accent);
+    color: white;
+  }
+
+  .connection-status.connected .setup-link {
+    display: none;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .preview-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: auto;
+    background: 
+      linear-gradient(90deg, var(--border) 1px, transparent 1px),
+      linear-gradient(var(--border) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: center center;
+  }
+
+  .preview-frame {
+    position: relative;
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transition: width 0.3s ease;
+  }
+
+  .preview-frame[data-viewport="mobile"] {
+    width: 375px;
+    height: 667px;
+  }
+
+  .preview-frame[data-viewport="tablet"] {
+    width: 768px;
+    height: 1024px;
+  }
+
+  .preview-frame[data-viewport="desktop"] {
+    width: 100%;
+    max-width: 1400px;
+    height: 800px;
+  }
+
+  #preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+  }
+
+  .selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* El overlay NUNCA debe capturar eventos - el bridge dentro del iframe lo maneja */
+  .selection-overlay.active {
+    /* pointer-events: none para que los eventos lleguen al iframe */
+    pointer-events: none;
+    cursor: crosshair;
+  }
+
+  /* Resize handles */
+  .resize-handle {
+    position: absolute;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 20;
+  }
+
+  .preview-frame:hover .resize-handle {
+    opacity: 1;
+  }
+
+  .resize-handle-e {
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 40px;
+    border-radius: 4px;
+    cursor: ew-resize;
+  }
+
+  .resize-handle-s {
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 8px;
+    border-radius: 4px;
+    cursor: ns-resize;
+  }
+
+  .resize-handle-se {
+    right: -4px;
+    bottom: -4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    cursor: nwse-resize;
+  }
+
+  .resize-handle:hover {
+    opacity: 1 !important;
+    background: var(--accent-hover);
+  }
+
+  .preview-dimensions {
+    margin-top: 12px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-subtle);
+    background: var(--surface);
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Toolbar */
+  .preview-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .toolbar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .toolbar-item:hover {
+    background: var(--surface-elevated);
+    color: var(--text);
+  }
+
+  .toolbar-item:has(input:checked) {
+    background: var(--accent-muted);
+    color: var(--accent);
+  }
+
+  .toolbar-item input {
+    accent-color: var(--accent);
+  }
+
+  .toolbar-separator {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+  }
+
+  .zoom-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .zoom-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .zoom-btn:hover {
+    background: var(--border);
+  }
+
+  .zoom-value {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .toolbar-hint {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+</style>
+
+<script>
+  const previewFrame = document.getElementById('preview-frame') as HTMLElement;
+  const previewIframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+  const previewUrl = document.getElementById('preview-url') as HTMLInputElement;
+  const dimensionWidth = document.getElementById('dimension-width');
+  const dimensionHeight = document.getElementById('dimension-height');
+  const zoomValue = document.getElementById('zoom-value');
+  const connectionStatus = document.getElementById('connection-status');
+  const selectionOverlay = document.getElementById('selection-overlay');
+
+  let currentZoom = 100;
+  let isResizing = false;
+  let startX = 0, startY = 0;
+  let startWidth = 0, startHeight = 0;
+  let resizeDirection = '';
+  let inspectMode = false;
+
+  // Leer URL del parámetro de query string (si viene de blank)
+  const params = new URLSearchParams(window.location.search);
+  const initialUrl = params.get('url');
+  if (initialUrl && previewIframe && previewUrl) {
+    previewIframe.src = initialUrl;
+    previewUrl.value = initialUrl;
+  }
+
+  // Update dimensions display
+  function updateDimensions() {
+    if (previewFrame && dimensionWidth && dimensionHeight) {
+      dimensionWidth.textContent = Math.round(previewFrame.offsetWidth) + 'px';
+      dimensionHeight.textContent = Math.round(previewFrame.offsetHeight) + 'px';
+    }
+  }
+
+  // Enviar mensaje al iframe
+  function sendToIframe(type: string, payload: any = {}) {
+    if (previewIframe?.contentWindow) {
+      console.log('[StyleEditor] 📤 Enviando al iframe:', type, payload);
+      previewIframe.contentWindow.postMessage({ type, payload }, '*');
+    } else {
+      console.log('[StyleEditor] ⚠️ No hay contentWindow en el iframe');
+    }
+  }
+
+  // Load URL
+  function loadUrl(url: string) {
+    if (!previewIframe || !connectionStatus) return;
+    
+    // Asegurar que tenga protocolo
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'http://' + url;
+    }
+    
+    connectionStatus.className = 'connection-status';
+    connectionStatus.querySelector('.status-text')!.textContent = 'Conectando...';
+    
+    previewIframe.src = url;
+    
+    if (previewUrl) {
+      previewUrl.value = url;
+    }
+  }
+
+  // Check iframe loaded
+  previewIframe?.addEventListener('load', () => {
+    if (connectionStatus) {
+      connectionStatus.className = 'connection-status connected';
+      connectionStatus.querySelector('.status-text')!.textContent = 'Conectado';
+    }
+    // Enviar estado de inspección actual
+    setTimeout(() => {
+      sendToIframe('style-editor:set-inspect-mode', { enabled: inspectMode });
+    }, 500);
+  });
+
+  previewIframe?.addEventListener('error', () => {
+    if (connectionStatus) {
+      connectionStatus.className = 'connection-status error';
+      connectionStatus.querySelector('.status-text')!.textContent = 'Error de conexión';
+    }
+  });
+
+  // URL input handlers
+  previewUrl?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      loadUrl(previewUrl.value);
+    }
+  });
+
+  document.getElementById('btn-reload')?.addEventListener('click', () => {
+    if (previewIframe && previewUrl) {
+      loadUrl(previewUrl.value);
+    }
+  });
+
+  document.getElementById('btn-open-external')?.addEventListener('click', () => {
+    if (previewUrl) {
+      window.open(previewUrl.value, '_blank');
+    }
+  });
+
+  // Inspect mode
+  document.getElementById('inspect-mode')?.addEventListener('change', (e) => {
+    inspectMode = (e.target as HTMLInputElement).checked;
+    if (selectionOverlay) {
+      selectionOverlay.classList.toggle('active', inspectMode);
+    }
+    // Enviar al iframe
+    sendToIframe('style-editor:set-inspect-mode', { enabled: inspectMode });
+  });
+
+  // Resize functionality
+  document.querySelectorAll('.resize-handle').forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isResizing = true;
+      resizeDirection = (e.target as HTMLElement).dataset.direction || '';
+      startX = (e as MouseEvent).clientX;
+      startY = (e as MouseEvent).clientY;
+      startWidth = previewFrame?.offsetWidth || 0;
+      startHeight = previewFrame?.offsetHeight || 0;
+      document.body.style.cursor = window.getComputedStyle(e.target as Element).cursor;
+      document.body.style.userSelect = 'none';
+    });
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing || !previewFrame) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (resizeDirection.includes('e')) {
+      previewFrame.style.width = Math.max(320, startWidth + dx) + 'px';
+    }
+    if (resizeDirection.includes('s')) {
+      previewFrame.style.height = Math.max(200, startHeight + dy) + 'px';
+    }
+
+    updateDimensions();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // Viewport change
+  document.addEventListener('style-editor:viewport-change', ((e: CustomEvent) => {
+    if (previewFrame) {
+      previewFrame.dataset.viewport = e.detail.viewport;
+      previewFrame.style.width = '';
+      previewFrame.style.height = '';
+      updateDimensions();
+    }
+  }) as EventListener);
+
+  // Zoom controls
+  document.getElementById('zoom-in')?.addEventListener('click', () => {
+    if (currentZoom < 150) {
+      currentZoom += 10;
+      updateZoom();
+    }
+  });
+
+  document.getElementById('zoom-out')?.addEventListener('click', () => {
+    if (currentZoom > 50) {
+      currentZoom -= 10;
+      updateZoom();
+    }
+  });
+
+  function updateZoom() {
+    if (previewFrame && zoomValue) {
+      previewFrame.style.transform = `scale(${currentZoom / 100})`;
+      previewFrame.style.transformOrigin = 'center center';
+      zoomValue.textContent = currentZoom + '%';
+    }
+  }
+
+  // Initial setup
+  updateDimensions();
+  
+  // Watch for resize
+  if (previewFrame) {
+    new ResizeObserver(updateDimensions).observe(previewFrame);
+  }
+
+  // ========================================
+  // SISTEMA DE UNDO/REDO
+  // ========================================
+  interface StyleChange {
+    elementSelector: string;
+    property: string;
+    oldValue: string;
+    newValue: string;
+    timestamp: number;
+  }
+
+  const undoStack: StyleChange[] = [];
+  const redoStack: StyleChange[] = [];
+  const MAX_HISTORY = 50;
+
+  // Exponer para debug en consola
+  (window as any).styleEditorDebug = {
+    get undoStack() { return undoStack; },
+    get redoStack() { return redoStack; },
+    undo,
+    redo,
+    pushToUndo,
+    testUndo: () => {
+      // Simular un cambio para probar
+      const testChange: StyleChange = {
+        elementSelector: 'body',
+        property: 'backgroundColor',
+        oldValue: 'rgb(255, 255, 255)',
+        newValue: 'rgb(255, 0, 0)',
+        timestamp: Date.now()
+      };
+      pushToUndo(testChange);
+      console.log('[TEST] Cambio añadido al historial:', testChange);
+      console.log('[TEST] undoStack tiene', undoStack.length, 'elementos');
+      console.log('[TEST] Ahora prueba Ctrl+Z o escribe: styleEditorDebug.undo()');
+    }
+  };
+
+  function pushToUndo(change: StyleChange) {
+    console.log('[StyleEditor] 📝 Guardando cambio en historial:', change);
+    undoStack.push(change);
+    if (undoStack.length > MAX_HISTORY) {
+      undoStack.shift();
+    }
+    // Limpiar redo stack cuando hay un nuevo cambio
+    redoStack.length = 0;
+    updateUndoRedoButtons();
+    console.log('[StyleEditor] 📊 Historial: undo=' + undoStack.length + ', redo=' + redoStack.length);
+  }
+
+  function undo() {
+    console.log('[StyleEditor] ↩️ Intentando undo... stack:', undoStack.length);
+    if (undoStack.length === 0) {
+      console.log('[StyleEditor] ⚠️ No hay nada que deshacer');
+      return;
+    }
+    
+    const change = undoStack.pop()!;
+    redoStack.push(change);
+    
+    // Enviar al iframe para revertir
+    sendToIframe('style-editor:apply-style-by-selector', {
+      selector: change.elementSelector,
+      property: change.property,
+      value: change.oldValue
+    });
+    
+    updateUndoRedoButtons();
+    console.log('[StyleEditor] ↩️ Undo ejecutado:', change.property, change.newValue, '→', change.oldValue);
+  }
+
+  function redo() {
+    console.log('[StyleEditor] ↪️ Intentando redo... stack:', redoStack.length);
+    if (redoStack.length === 0) {
+      console.log('[StyleEditor] ⚠️ No hay nada que rehacer');
+      return;
+    }
+    
+    const change = redoStack.pop()!;
+    undoStack.push(change);
+    
+    // Enviar al iframe para reaplicar
+    sendToIframe('style-editor:apply-style-by-selector', {
+      selector: change.elementSelector,
+      property: change.property,
+      value: change.newValue
+    });
+    
+    updateUndoRedoButtons();
+    console.log('[StyleEditor] ↪️ Redo ejecutado:', change.property, change.oldValue, '→', change.newValue);
+  }
+
+  function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('btn-undo');
+    const redoBtn = document.getElementById('btn-redo');
+    const undoCount = document.getElementById('undo-count');
+    const redoCount = document.getElementById('redo-count');
+    
+    if (undoBtn) {
+      undoBtn.classList.toggle('disabled', undoStack.length === 0);
+      undoBtn.setAttribute('title', `Deshacer (Ctrl+Z) - ${undoStack.length} cambios`);
+    }
+    if (redoBtn) {
+      redoBtn.classList.toggle('disabled', redoStack.length === 0);
+      redoBtn.setAttribute('title', `Rehacer (Ctrl+Y) - ${redoStack.length} cambios`);
+    }
+    if (undoCount) undoCount.textContent = undoStack.length.toString();
+    if (redoCount) redoCount.textContent = redoStack.length.toString();
+  }
+
+  // Atajos de teclado globales - usar window para capturar aunque el iframe tenga foco
+  window.addEventListener('keydown', (e) => {
+    console.log('[StyleEditor] Tecla:', e.key, 'Ctrl:', e.ctrlKey, 'Shift:', e.shiftKey);
+    
+    // Ctrl+Z - Undo
+    if (e.ctrlKey && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      console.log('[StyleEditor] Ctrl+Z detectado, undoStack:', undoStack.length);
+      undo();
+    }
+    // Ctrl+Y o Ctrl+Shift+Z - Redo
+    if ((e.ctrlKey && e.key.toLowerCase() === 'y') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z')) {
+      e.preventDefault();
+      console.log('[StyleEditor] Ctrl+Y/Ctrl+Shift+Z detectado, redoStack:', redoStack.length);
+      redo();
+    }
+    // Escape - Deseleccionar
+    if (e.key === 'Escape') {
+      sendToIframe('style-editor:deselect', {});
+    }
+  }, true); // Usar capture para interceptar antes
+
+  // Botones de undo/redo en el header
+  document.getElementById('btn-undo')?.addEventListener('click', undo);
+  document.getElementById('btn-redo')?.addEventListener('click', redo);
+
+  // Try to communicate with iframe (if same origin)
+  window.addEventListener('message', (event) => {
+    const { type, payload } = event.data || {};
+    
+    switch (type) {
+      case 'style-editor:bridge-ready':
+        console.log('[StyleEditor] Bridge conectado');
+        if (connectionStatus) {
+          connectionStatus.className = 'connection-status connected';
+          connectionStatus.querySelector('.status-text')!.textContent = 'Bridge activo';
+        }
+        // Sincronizar estado
+        sendToIframe('style-editor:set-inspect-mode', { enabled: inspectMode });
+        break;
+
+      case 'style-editor:element-info':
+        // Elemento seleccionado en el iframe
+        document.dispatchEvent(new CustomEvent('style-editor:element-selected', {
+          detail: payload
+        }));
+        break;
+
+      case 'style-editor:element-resized':
+        // Elemento redimensionado - registrar en historial
+        if (payload.resizeChange) {
+          pushToUndo({
+            elementSelector: payload.selector || payload.tagName,
+            property: payload.resizeChange.property,
+            oldValue: payload.resizeChange.oldValue,
+            newValue: payload.resizeChange.newValue,
+            timestamp: Date.now()
+          });
+        }
+        document.dispatchEvent(new CustomEvent('style-editor:element-resized', {
+          detail: payload
+        }));
+        break;
+
+      case 'style-editor:style-applied':
+        // Estilo aplicado - registrar en historial
+        if (payload.change) {
+          pushToUndo({
+            elementSelector: payload.selector || payload.tagName,
+            property: payload.change.property,
+            oldValue: payload.change.oldValue,
+            newValue: payload.change.newValue,
+            timestamp: Date.now()
+          });
+        }
+        document.dispatchEvent(new CustomEvent('style-editor:style-applied', {
+          detail: payload
+        }));
+        break;
+    }
+  });
+
+  // Escuchar cambios de estilo desde el panel
+  document.addEventListener('style-editor:style-change', ((e: CustomEvent) => {
+    const { property, value } = e.detail;
+    // Convertir propiedad CSS a camelCase para JS
+    const jsProp = property.replace(/-([a-z])/g, (g: string) => g[1].toUpperCase());
+    sendToIframe('style-editor:apply-style', { property: jsProp, value });
+  }) as EventListener);
+
+  // Check connection on load
+  setTimeout(() => {
+    if (connectionStatus?.classList.contains('connection-status') && 
+        !connectionStatus.classList.contains('connected')) {
+      // Still connecting, might be blocked
+      connectionStatus.querySelector('.status-text')!.textContent = 'Verificando...';
+    }
+  }, 3000);
+</script>

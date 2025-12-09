@@ -1,0 +1,249 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Preview from '../components/Preview.astro';
+import RulePanel from '../components/RulePanel.astro';
+---
+
+<Layout title="Event Editor - SageBox">
+  <div class="app">
+    <Header />
+    <div class="main">
+      <Sidebar />
+      <Preview />
+      <RulePanel />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  // Declaración de tipo para Window
+  declare global {
+    interface Window {
+      eventEditorState: {
+        rules: EventRule[];
+        selectedRule: string | null;
+        selectedComponent: string | null;
+      };
+    }
+
+    interface EventRule {
+      id: number;
+      name: string;
+      enabled: boolean;
+      trigger: {
+        component: string;
+        event: string;
+        selector?: string;
+      };
+      conditions: Condition[];
+      conditionLogic: 'AND' | 'OR';
+      actions: Action[];
+    }
+
+    interface Condition {
+      id: number;
+      type: 'property' | 'state' | 'custom';
+      target: string;
+      operator: 'equals' | 'notEquals' | 'contains' | 'greaterThan' | 'lessThan';
+      value: string;
+    }
+
+    interface Action {
+      id: number;
+      type: 'setAttribute' | 'toggleClass' | 'emit' | 'call' | 'navigate' | 'custom';
+      target: string;
+      params: Record<string, string>;
+    }
+  }
+
+  // Estado global del editor
+  window.eventEditorState = {
+    rules: [],
+    selectedRule: null,
+    selectedComponent: null,
+  };
+
+  // Cargar reglas del localStorage
+  function loadRules() {
+    const saved = localStorage.getItem('sagebox-event-rules');
+    if (saved) {
+      window.eventEditorState.rules = JSON.parse(saved);
+      updateRulesList();
+    }
+  }
+
+  // Guardar reglas en localStorage
+  function saveRules() {
+    localStorage.setItem('sagebox-event-rules', JSON.stringify(window.eventEditorState.rules));
+  }
+
+  // Actualizar lista de reglas en el sidebar
+  function updateRulesList() {
+    const list = document.getElementById('rules-list');
+    const count = document.getElementById('rules-count');
+    const rules = window.eventEditorState.rules;
+
+    if (count) count.textContent = String(rules.length);
+
+    if (!list) return;
+
+    if (rules.length === 0) {
+      list.innerHTML = `
+        <p class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          No hay reglas creadas<br/>
+          <small>Selecciona un componente para empezar</small>
+        </p>
+      `;
+      return;
+    }
+
+    list.innerHTML = rules
+      .map(
+        rule => `
+      <div class="rule-item ${rule.enabled ? '' : 'disabled'} ${window.eventEditorState.selectedRule === String(rule.id) ? 'active' : ''}" data-rule="${rule.id}">
+        <div class="rule-indicator"></div>
+        <div class="rule-info">
+          <span class="rule-name">${rule.name}</span>
+          <span class="rule-trigger">${rule.trigger.component} → ${rule.trigger.event}</span>
+        </div>
+        <button class="rule-toggle" data-toggle="${rule.id}" title="${rule.enabled ? 'Desactivar' : 'Activar'}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            ${
+              rule.enabled
+                ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+                : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            }
+          </svg>
+        </button>
+      </div>
+    `,
+      )
+      .join('');
+
+    // Event listeners
+    list.querySelectorAll('.rule-item').forEach(item => {
+      item.addEventListener('click', e => {
+        if ((e.target as HTMLElement).closest('.rule-toggle')) return;
+        const ruleId = item.getAttribute('data-rule');
+        window.eventEditorState.selectedRule = ruleId;
+        updateRulesList();
+        // TODO: Load rule into panel
+      });
+    });
+
+    list.querySelectorAll('.rule-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ruleId = parseInt(btn.getAttribute('data-toggle') || '0');
+        const rule = window.eventEditorState.rules.find(r => r.id === ruleId);
+        if (rule) {
+          rule.enabled = !rule.enabled;
+          saveRules();
+          updateRulesList();
+        }
+      });
+    });
+  }
+
+  // Escuchar eventos
+  document.addEventListener('event-editor:rule-saved', ((e: CustomEvent<EventRule>) => {
+    const rule = e.detail;
+    const existingIndex = window.eventEditorState.rules.findIndex(r => r.id === rule.id);
+
+    if (existingIndex >= 0) {
+      window.eventEditorState.rules[existingIndex] = rule;
+    } else {
+      window.eventEditorState.rules.push(rule);
+    }
+
+    saveRules();
+    updateRulesList();
+  }) as EventListener);
+
+  document.addEventListener('event-editor:quick-action', ((e: CustomEvent) => {
+    const { action } = e.detail;
+
+    switch (action) {
+      case 'toggle-all':
+        const allEnabled = window.eventEditorState.rules.every(r => r.enabled);
+        window.eventEditorState.rules.forEach(r => (r.enabled = !allEnabled));
+        break;
+      case 'clear-all':
+        if (confirm('¿Eliminar todas las reglas?')) {
+          window.eventEditorState.rules = [];
+        }
+        break;
+    }
+
+    saveRules();
+    updateRulesList();
+  }) as EventListener);
+
+  // Comunicación con el iframe del preview
+  window.addEventListener('message', event => {
+    if (event.data.type === 'component-event') {
+      // Forward to console
+      document.dispatchEvent(
+        new CustomEvent('event-editor:event-captured', {
+          detail: event.data.payload,
+        }),
+      );
+    }
+  });
+
+  // Export rules
+  document.getElementById('export-rules')?.addEventListener('click', () => {
+    const data = JSON.stringify(window.eventEditorState.rules, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sagebox-event-rules.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Import rules
+  document.getElementById('import-rules')?.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async e => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const text = await file.text();
+        try {
+          const rules = JSON.parse(text);
+          window.eventEditorState.rules = rules;
+          saveRules();
+          updateRulesList();
+        } catch {
+          alert('Error al importar las reglas');
+        }
+      }
+    };
+    input.click();
+  });
+
+  // Initialize
+  loadRules();
+</script>

@@ -1,0 +1,1192 @@
+---
+import { t, type Locale } from '../lib/i18n';
+import { ICON_SETS, readIconsRaw } from '../lib/icons';
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'en' } = Astro.props;
+const i18n = (key: Parameters<typeof t>[0]) => t(key, locale);
+
+// Get current icons to show already imported
+let currentIcons: Record<string, unknown> = {};
+try {
+  currentIcons = readIconsRaw();
+} catch {
+  currentIcons = {};
+}
+const importedNames = new Set(Object.keys(currentIcons));
+
+// Separate static and animated sets (excluding 'animated' which is local)
+const staticSets = Object.entries(ICON_SETS).filter(([key, config]) => key !== 'animated' && !config.animated);
+const animatedSets = Object.entries(ICON_SETS).filter(([key, config]) => config.animated && key !== 'animated');
+const allSets = [...staticSets, ...animatedSets];
+
+// Styles mapping with translations
+const ICON_STYLES = [
+  { id: 'all', label: i18n('modal.import.style_all') },
+  { id: 'outline', label: i18n('modal.import.style_outline') },
+  { id: 'solid', label: i18n('modal.import.style_solid') },
+  { id: 'duotone', label: i18n('modal.import.style_duotone') },
+  { id: 'linear', label: i18n('modal.import.style_linear') },
+];
+
+// Translations for JavaScript
+const jsTranslations = {
+  loading: i18n('modal.import.loading'),
+  iconsAvailable: i18n('modal.import.icons_available'),
+  loadError: i18n('modal.import.load_error'),
+  noResults: i18n('modal.import.no_results'),
+  alreadyImported: i18n('modal.import.already_imported'),
+  selectSet: i18n('modal.import.select_set'),
+};
+---
+
+<!-- Import Modal Overlay -->
+<div class="im-modal-overlay" id="im-import-modal">
+  <div class="im-modal-dialog">
+    <div class="im-modal-header">
+      <h2>{i18n('modal.import.title')}</h2>
+      <button type="button" class="im-modal-close" id="im-import-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="im-modal-layout">
+      <!-- Main Content Area -->
+      <div class="im-modal-main">
+        <!-- Filters -->
+        <div class="im-filters-row">
+          <div class="im-filter">
+            <label class="im-label">{i18n('modal.import.style')}</label>
+            <select id="import-style-filter" class="im-select">
+              {ICON_STYLES.map(s => <option value={s.id}>{s.label}</option>)}
+            </select>
+          </div>
+          <div class="im-filter im-filter-grow">
+            <label class="im-label">{i18n('modal.import.search')}</label>
+            <input type="text" id="import-search" class="im-input" placeholder={i18n('modal.import.search_placeholder')} />
+          </div>
+          <div class="im-filter">
+            <label class="im-label">{i18n('modal.import.animated_only')}</label>
+            <select id="import-animated-filter" class="im-select">
+              <option value="all">{i18n('modal.import.all_icons')}</option>
+              <option value="animated">{i18n('modal.import.animated_only')}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid Area -->
+        <div class="im-grid-area">
+        <div class="im-grid-header">
+          <span id="import-status">{i18n('modal.import.select_set')}</span>
+          <div class="im-grid-actions">
+            <button type="button" id="import-select-all" class="im-link-btn" disabled>{i18n('sidebar.selectAll')}</button>
+            <span class="im-counter"><span id="import-selected">0</span> {i18n('modal.import.selected')}</span>
+          </div>
+        </div>
+        <div class="im-grid" id="import-grid">
+          <div class="im-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" x2="12" y1="3" y2="15"/>
+            </svg>
+            <p>{i18n('modal.import.select_set')}</p>
+          </div>
+        </div>
+        <!-- Pagination -->
+        <div class="im-pagination" id="import-pagination" style="display: none;">
+          <button type="button" class="im-page-btn" id="import-prev" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="im-page-info"><span id="import-range">1-80</span> {i18n('modal.import.of')} <span id="import-total-icons">0</span></span>
+          <button type="button" class="im-page-btn" id="import-next">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <select id="import-page-size" class="im-select im-select-small">
+            <option value="40">40</option>
+            <option value="80" selected>80</option>
+            <option value="120">120</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+      </div>
+      </div>
+
+      <!-- Sidebar with Icon Sets -->
+      <div class="im-modal-sidebar">
+        <div class="im-sidebar-header">
+          <select id="import-type-filter" class="im-select im-select-full">
+            <option value="all">{i18n('modal.import.all_sets')} ({allSets.length})</option>
+            <option value="static">{i18n('modal.import.static_sets')} ({staticSets.length})</option>
+            <option value="animated">{i18n('modal.import.animated_sets')} ({animatedSets.length})</option>
+          </select>
+        </div>
+
+        <div class="im-set-list" id="import-set-selector">
+          {allSets.map(([prefix, config]) => (
+            <button
+              type="button"
+              class={`im-set-item ${config.animated ? 'im-set-animated' : ''}`}
+              data-set={prefix}
+              data-animated={config.animated ? 'true' : 'false'}
+              style={`--c: ${config.color}`}
+            >
+              <span class="im-set-dot" style={`background: ${config.color}`}></span>
+              <span class="im-set-name">{config.name}</span>
+              {config.animated && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="im-set-animated-badge">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="im-modal-footer">
+      <button type="button" class="im-btn-cancel" id="im-import-cancel">{i18n('modal.cancel')}</button>
+      <button type="button" class="im-btn-submit" id="import-submit" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" x2="12" y1="3" y2="15"/>
+        </svg>
+        {i18n('modal.import.button')} (<span id="import-count">0</span>)
+      </button>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .im-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .im-modal-overlay.open {
+    display: flex;
+  }
+
+  .im-modal-dialog {
+    background: #1a1a1f;
+    border: 1px solid #2a2a35;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .im-modal-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .im-modal-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    gap: 1rem;
+    overflow: hidden;
+  }
+
+  .im-modal-sidebar {
+    width: 220px;
+    background: #151518;
+    border-left: 1px solid #2a2a35;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .im-sidebar-header {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #2a2a35;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .im-select-full {
+    width: 100%;
+  }
+
+  .im-set-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .im-set-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #a1a1aa;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .im-set-item:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-set-item.active {
+    background: color-mix(in srgb, var(--c, #6366f1) 15%, #1a1a1f);
+    border-color: var(--c, #6366f1);
+    color: #f4f4f5;
+  }
+
+  .im-set-item .im-set-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .im-set-item .im-set-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .im-set-item .im-set-animated-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .im-set-item.hidden {
+    display: none;
+  }
+
+  .im-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #2a2a35;
+  }
+
+  .im-modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f4f4f5;
+  }
+
+  .im-modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #71717a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .im-modal-close:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #2a2a35;
+  }
+
+  /* Tabs for set type */
+  .im-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: #18181b;
+    border-radius: 10px;
+    border: 1px solid #27272a;
+  }
+
+  .im-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #71717a;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .im-tab:hover {
+    color: #a1a1aa;
+    background: #27272a;
+  }
+
+  .im-tab.active {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    background: #3f3f46;
+    border-radius: 10px;
+    color: #a1a1aa;
+  }
+
+  .im-tab.active .im-tab-count {
+    background: #6366f1;
+    color: white;
+  }
+
+  .im-tab-animated.active .im-tab-count {
+    background: #ec4899;
+  }
+
+  .im-animated-icon {
+    animation: im-spin 3s linear infinite;
+  }
+
+  @keyframes im-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .im-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #a1a1aa;
+  }
+
+  .im-set-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Animated set styling */
+  .im-set-animated {
+    position: relative;
+  }
+
+  .im-set-animated-badge {
+    color: #ec4899;
+    animation: im-spin 3s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .im-filters-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .im-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .im-filter-grow {
+    flex: 1;
+  }
+
+  .im-filter-animated {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .im-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #d4d4d8;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .im-checkbox-label:hover {
+    background: #3f3f46;
+    border-color: #ec4899;
+  }
+
+  .im-checkbox-label:has(input:checked) {
+    background: color-mix(in srgb, #ec4899 20%, #27272a);
+    border-color: #ec4899;
+    color: #f4f4f5;
+  }
+
+  .im-checkbox-label input[type="checkbox"] {
+    display: none;
+  }
+
+  .im-animated-icon-small {
+    color: #ec4899;
+    animation: im-spin 3s linear infinite;
+  }
+
+  .im-checkbox-label.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .im-select, .im-input {
+    padding: 0.625rem 0.875rem;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #f4f4f5;
+    font-size: 0.875rem;
+  }
+
+  .im-select-small {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+
+  .im-select:focus, .im-input:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .im-grid-area {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #2a2a35;
+    border-radius: 12px;
+    background: #18181b;
+    overflow: hidden;
+  }
+
+  .im-grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #1f1f24;
+    border-bottom: 1px solid #2a2a35;
+    font-size: 0.8125rem;
+    color: #71717a;
+  }
+
+  .im-grid-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .im-link-btn {
+    background: none;
+    border: none;
+    color: #6366f1;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .im-link-btn:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  .im-link-btn:disabled {
+    color: #52525b;
+    cursor: not-allowed;
+  }
+
+  .im-counter span {
+    color: #6366f1;
+    font-weight: 600;
+  }
+
+  .im-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.5rem;
+    align-content: start;
+    background: #151518;
+  }
+
+  .im-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: linear-gradient(180deg, #1a1a1f 0%, #18181b 100%);
+    border-top: 1px solid #2a2a35;
+  }
+
+  .im-page-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .im-page-btn:hover:not(:disabled) {
+    background: #3f3f46;
+    border-color: #6366f1;
+    color: #f4f4f5;
+    transform: scale(1.05);
+  }
+
+  .im-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .im-page-info {
+    font-size: 0.8125rem;
+    color: #71717a;
+    padding: 0.375rem 0.75rem;
+    background: #1e1e23;
+    border-radius: 6px;
+    border: 1px solid #2a2a32;
+  }
+
+  .im-page-info span {
+    color: #a5b4fc;
+    font-weight: 600;
+  }
+
+  .im-placeholder {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #52525b;
+    text-align: center;
+    gap: 0.75rem;
+    min-height: 300px;
+    width: 100%;
+  }
+
+  .im-placeholder.error {
+    color: #f87171;
+  }
+
+  .im-placeholder.error svg {
+    stroke: #f87171;
+    opacity: 0.7;
+  }
+
+  .im-placeholder p {
+    margin: 0;
+  }
+
+  .im-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem 0.625rem;
+    background: #222228;
+    border: 1px solid #32323a;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    gap: 0.375rem;
+    position: relative;
+    min-height: 82px;
+  }
+
+  .im-icon-item:hover:not(.disabled) {
+    border-color: #52525b;
+    background: #2a2a32;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  .im-icon-item.selected {
+    border-color: #6366f1 !important;
+    background: #1e1e2e !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5), inset 0 0 0 1px rgba(99, 102, 241, 0.3) !important;
+  }
+
+  .im-icon-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    background: #6366f1;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .im-icon-item.selected iconify-icon {
+    color: #a5b4fc !important;
+  }
+
+  .im-icon-item.selected span {
+    color: #c7d2fe !important;
+  }
+
+  .im-icon-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #1a1a1f;
+  }
+
+  .im-icon-item.disabled::before {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 8px;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.15);
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .im-icon-item iconify-icon {
+    font-size: 24px;
+    color: #a1a1aa;
+    flex-shrink: 0;
+  }
+
+  .im-icon-item:hover:not(.disabled) iconify-icon {
+    color: #f4f4f5;
+  }
+
+  .im-icon-item.selected iconify-icon {
+    color: #a5b4fc;
+  }
+
+  .im-icon-item span {
+    font-size: 0.6875rem;
+    color: #71717a;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+
+  .im-icon-item:hover:not(.disabled) span {
+    color: #d4d4d8;
+  }
+
+  .im-icon-item.selected span {
+    color: #c7d2fe;
+  }
+
+  .im-btn-cancel, .im-btn-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .im-btn-cancel {
+    background: #27272a;
+    color: #d4d4d8;
+  }
+
+  .im-btn-cancel:hover {
+    background: #3f3f46;
+  }
+
+  .im-btn-submit {
+    background: #6366f1;
+    color: white;
+  }
+
+  .im-btn-submit:hover:not(:disabled) {
+    background: #4f46e5;
+  }
+
+  .im-btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .im-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    color: #71717a;
+  }
+
+  .im-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #3f3f46;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script define:vars={{ importedNames: Array.from(importedNames), translations: jsTranslations }}>
+  const modal = document.getElementById('im-import-modal');
+  const closeBtn = document.getElementById('im-import-close');
+  const cancelBtn = document.getElementById('im-import-cancel');
+  const setSelector = document.getElementById('import-set-selector');
+  const styleFilter = document.getElementById('import-style-filter');
+  const searchInput = document.getElementById('import-search');
+  const animatedFilter = document.getElementById('import-animated-filter');
+  const grid = document.getElementById('import-grid');
+  const statusText = document.getElementById('import-status');
+  const selectAllBtn = document.getElementById('import-select-all');
+  const selectedCountEl = document.getElementById('import-selected');
+  const importCountEl = document.getElementById('import-count');
+  const submitBtn = document.getElementById('import-submit');
+  const typeFilter = document.getElementById('import-type-filter');
+  const pageSizeSelect = document.getElementById('import-page-size');
+
+  // Keywords that indicate an animated icon (only for specific sets like eos-icons)
+  // These are verified animated icons, not just names that sound animated
+  const EOS_ANIMATED_ICONS = ['loading', 'bubble-loading', 'three-dots-loading', 'hourglass', 'installing', 'typing'];
+
+  let currentSet = null;
+  let currentTypeFilter = 'all'; // 'all', 'static', 'animated'
+  let icons = [];
+  let selectedIcons = new Set();
+  const importedSet = new Set(importedNames);
+
+  // Pagination
+  let iconsPerPage = 80;
+  let currentPage = 1;
+  let totalPages = 1;
+
+  const pagination = document.getElementById('import-pagination');
+  const prevBtn = document.getElementById('import-prev');
+  const nextBtn = document.getElementById('import-next');
+  const rangeEl = document.getElementById('import-range');
+  const totalIconsEl = document.getElementById('import-total-icons');
+
+  // Page size change handler
+  pageSizeSelect?.addEventListener('change', () => {
+    iconsPerPage = parseInt(pageSizeSelect.value, 10);
+    currentPage = 1;
+    renderIcons();
+  });
+
+  // Type tabs filtering
+  function filterSetsByType(type) {
+    currentTypeFilter = type;
+    const allBtns = setSelector?.querySelectorAll('.im-set-item');
+
+    allBtns?.forEach(btn => {
+      const isAnimated = btn.dataset.animated === 'true';
+      let show = false;
+
+      if (type === 'all') {
+        show = true;
+      } else if (type === 'static') {
+        show = !isAnimated;
+      } else if (type === 'animated') {
+        show = isAnimated;
+      }
+
+      btn.classList.toggle('hidden', !show);
+    });
+  }
+
+  // Type filter dropdown
+  typeFilter?.addEventListener('change', () => {
+    filterSetsByType(typeFilter.value);
+  });
+
+  // Close modal
+  function closeModal() {
+    modal?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Open modal (called externally)
+  function openModal() {
+    modal?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Expose openModal globally for the import button
+  window.openImportModal = openModal;
+
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Set selection
+  setSelector?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.im-set-item');
+    if (!btn) return;
+
+    setSelector.querySelectorAll('.im-set-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    currentSet = btn.dataset.set;
+    const isAnimatedSet = btn.dataset.animated === 'true';
+
+    // Disable "animated only" filter for sets that are already 100% animated
+    if (animatedFilter) {
+      if (isAnimatedSet) {
+        animatedFilter.value = 'all';
+        animatedFilter.disabled = true;
+      } else {
+        animatedFilter.disabled = false;
+      }
+    }
+
+    selectedIcons.clear();
+    updateCounts();
+
+    await loadIcons(currentSet);
+  });
+
+  // Load icons from Iconify
+  async function loadIcons(prefix) {
+    grid.innerHTML = `
+      <div class="im-loading">
+        <div class="im-spinner"></div>
+        <span>${translations.loading}</span>
+      </div>
+    `;
+
+    try {
+      const response = await fetch(`https://api.iconify.design/collection?prefix=${prefix}`);
+      const data = await response.json();
+
+      if (data.uncategorized) {
+        icons = data.uncategorized;
+      } else if (data.categories) {
+        icons = Object.values(data.categories).flat();
+      } else {
+        icons = [];
+      }
+
+      if (statusText) statusText.textContent = `${icons.length} ${translations.iconsAvailable}`;
+      if (selectAllBtn) selectAllBtn.disabled = false;
+
+      renderIcons();
+    } catch (error) {
+      console.error('Failed to load icons:', error);
+      grid.innerHTML = `
+        <div class="im-placeholder error">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" x2="12" y1="8" y2="12"/>
+            <line x1="12" x2="12.01" y1="16" y2="16"/>
+          </svg>
+          <p>${translations.loadError}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Filter icons
+  function getFilteredIcons() {
+    let filtered = [...icons];
+
+    const style = styleFilter?.value;
+    if (style && style !== 'all') {
+      filtered = filtered.filter(name => {
+        const lowerName = name.toLowerCase();
+        return lowerName.includes(style) || lowerName.endsWith(`-${style}`) || lowerName.startsWith(`${style}-`);
+      });
+    }
+
+    const search = searchInput?.value.trim().toLowerCase();
+    if (search) {
+      filtered = filtered.filter(name => name.toLowerCase().includes(search));
+    }
+
+    // Filter by animated only (only works for sets with known animated icons)
+    if (animatedFilter?.value === 'animated' && !animatedFilter.disabled) {
+      if (currentSet === 'eos-icons') {
+        // EOS Icons: filter by known animated icon names
+        filtered = filtered.filter(name => {
+          const lowerName = name.toLowerCase();
+          return EOS_ANIMATED_ICONS.some(anim => lowerName === anim || lowerName.includes(anim));
+        });
+      } else {
+        // Other static sets: search for loading/spinner keywords
+        filtered = filtered.filter(name => {
+          const lowerName = name.toLowerCase();
+          return lowerName.includes('loading') || lowerName.includes('spinner');
+        });
+      }
+    }
+
+    return filtered;
+  }
+
+  // Animated filter change handler
+  animatedFilter?.addEventListener('change', () => {
+    currentPage = 1;
+    renderIcons();
+  });
+
+  // Render icons with pagination
+  function renderIcons() {
+    const filtered = getFilteredIcons();
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="im-placeholder"><p>${translations.noResults}</p></div>`;
+      if (pagination) pagination.style.display = 'none';
+      return;
+    }
+
+    // Calculate pagination
+    totalPages = Math.ceil(filtered.length / iconsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * iconsPerPage;
+    const endIdx = startIdx + iconsPerPage;
+    const toRender = filtered.slice(startIdx, endIdx);
+
+    grid.innerHTML = toRender.map(name => {
+      const fullName = `${currentSet}:${name}`;
+      const isImported = importedSet.has(fullName);
+      const isSelected = selectedIcons.has(name);
+
+      return `
+        <div class="im-icon-item ${isImported ? 'disabled' : ''} ${isSelected ? 'selected' : ''}"
+             data-name="${name}" ${isImported ? `title="${translations.alreadyImported}"` : ''}>
+          <iconify-icon icon="${fullName}"></iconify-icon>
+          <span>${name}</span>
+        </div>
+      `;
+    }).join('');
+
+    // Update pagination UI
+    if (totalPages > 1) {
+      if (pagination) pagination.style.display = 'flex';
+      const start = (currentPage - 1) * iconsPerPage + 1;
+      const end = Math.min(currentPage * iconsPerPage, filtered.length);
+      if (rangeEl) rangeEl.textContent = `${start}-${end}`;
+      if (totalIconsEl) totalIconsEl.textContent = filtered.length.toString();
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+    } else {
+      if (pagination) pagination.style.display = 'none';
+    }
+
+    // Click handlers
+    grid.querySelectorAll('.im-icon-item:not(.disabled)').forEach(item => {
+      item.addEventListener('click', () => {
+        const name = item.dataset.name;
+        if (selectedIcons.has(name)) {
+          selectedIcons.delete(name);
+          item.classList.remove('selected');
+        } else {
+          selectedIcons.add(name);
+          item.classList.add('selected');
+        }
+        updateCounts();
+      });
+    });
+  }
+
+  // Pagination handlers
+  prevBtn?.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderIcons();
+      grid.scrollTop = 0;
+    }
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderIcons();
+      grid.scrollTop = 0;
+    }
+  });
+
+  // Select all on current page
+  selectAllBtn?.addEventListener('click', () => {
+    const filtered = getFilteredIcons();
+    const startIdx = (currentPage - 1) * iconsPerPage;
+    const endIdx = startIdx + iconsPerPage;
+    const pageIcons = filtered.slice(startIdx, endIdx);
+    const selectable = pageIcons.filter(name => !importedSet.has(`${currentSet}:${name}`));
+
+    const allSelected = selectable.every(name => selectedIcons.has(name));
+
+    if (allSelected) {
+      selectable.forEach(name => selectedIcons.delete(name));
+    } else {
+      selectable.forEach(name => selectedIcons.add(name));
+    }
+
+    renderIcons();
+    updateCounts();
+  });
+
+  // Update counts
+  function updateCounts() {
+    const count = selectedIcons.size;
+    if (selectedCountEl) selectedCountEl.textContent = count.toString();
+    if (importCountEl) importCountEl.textContent = count.toString();
+    if (submitBtn) submitBtn.disabled = count === 0;
+  }
+
+  // Filter listeners (reset to page 1)
+  styleFilter?.addEventListener('change', () => {
+    currentPage = 1;
+    renderIcons();
+  });
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(window._importSearchTimeout);
+    window._importSearchTimeout = setTimeout(() => {
+      currentPage = 1;
+      renderIcons();
+    }, 200);
+  });
+
+  // Submit
+  submitBtn?.addEventListener('click', async () => {
+    if (selectedIcons.size === 0) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="im-spinner" style="width:16px;height:16px;border-width:2px"></div> Importing...';
+
+    try {
+      const iconsToImport = Array.from(selectedIcons).map(name => `${currentSet}:${name}`);
+
+      const response = await fetch('/api/import-icons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ icons: iconsToImport })
+      });
+
+      if (!response.ok) throw new Error('Import failed');
+
+      iconsToImport.forEach(name => importedSet.add(name));
+      selectedIcons.clear();
+
+      closeModal();
+      window.location.reload();
+    } catch (error) {
+      console.error('Import failed:', error);
+      alert('Failed to import icons. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `Import (0)`;
+      updateCounts();
+    }
+  });
+
+  // Reset on close
+  modal?.addEventListener('transitionend', () => {
+    if (!modal.classList.contains('open')) {
+      currentSet = null;
+      icons = [];
+      selectedIcons.clear();
+      currentPage = 1;
+      setSelector?.querySelectorAll('.im-set-btn').forEach(b => b.classList.remove('active'));
+      if (styleFilter) styleFilter.value = 'all';
+      if (searchInput) searchInput.value = '';
+      if (pagination) pagination.style.display = 'none';
+      grid.innerHTML = `<div class="im-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg><p>${translations.selectSet}</p></div>`;
+      if (statusText) statusText.textContent = translations.selectSet;
+      if (selectAllBtn) selectAllBtn.disabled = true;
+      updateCounts();
+    }
+  });
+</script>
+
+<!-- Iconify for icon previews -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" is:inline></script>

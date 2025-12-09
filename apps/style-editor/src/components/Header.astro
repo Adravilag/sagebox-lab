@@ -1,0 +1,225 @@
+---
+
+---
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M3 9h18"/>
+        <path d="M9 21V9"/>
+      </svg>
+      <span>Style Editor</span>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <div class="viewport-controls">
+      <button class="viewport-btn" data-viewport="mobile" title="Mobile (375px)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2"/>
+          <path d="M12 18h.01"/>
+        </svg>
+      </button>
+      <button class="viewport-btn" data-viewport="tablet" title="Tablet (768px)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <path d="M12 18h.01"/>
+        </svg>
+      </button>
+      <button class="viewport-btn active" data-viewport="desktop" title="Desktop (100%)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8"/>
+          <path d="M12 17v4"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="btn btn-ghost disabled" id="btn-undo" title="Deshacer (Ctrl+Z)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 7v6h6"/>
+        <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+      </svg>
+    </button>
+    <button class="btn btn-ghost disabled" id="btn-redo" title="Rehacer (Ctrl+Shift+Z)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 7v6h-6"/>
+        <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>
+      </svg>
+    </button>
+    <div class="divider"></div>
+    <a href="/blank" class="btn btn-ghost" id="btn-blank" title="Modo pantalla completa">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+      </svg>
+    </a>
+    <button class="btn btn-ghost" id="btn-export" title="Exportar tokens">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7,10 12,15 17,10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Exportar</span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 0 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+
+  .header-left,
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .logo svg {
+    color: var(--accent);
+  }
+
+  .viewport-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: var(--bg);
+    border-radius: var(--radius-md);
+  }
+
+  .viewport-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+  }
+
+  .viewport-btn:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .viewport-btn.active {
+    color: var(--accent);
+    background: var(--accent-muted);
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+    background: var(--surface-elevated);
+  }
+
+  .btn-ghost.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost.disabled:hover {
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+</style>
+
+<script>
+  // Viewport controls
+  document.querySelectorAll('.viewport-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const viewport = (btn as HTMLElement).dataset.viewport;
+      document.dispatchEvent(new CustomEvent('style-editor:viewport-change', {
+        detail: { viewport }
+      }));
+    });
+  });
+
+  // Undo/Redo buttons
+  document.getElementById('btn-undo')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('style-editor:undo'));
+  });
+
+  document.getElementById('btn-redo')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('style-editor:redo'));
+  });
+
+  // Export
+  document.getElementById('btn-export')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('style-editor:export'));
+  });
+
+  // Blank mode - pasar URL actual del iframe
+  document.getElementById('btn-blank')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const iframe = document.getElementById('preview-iframe') as HTMLIFrameElement;
+    let url = 'http://localhost:4200';
+    
+    // Intentar obtener la URL actual del iframe
+    try {
+      if (iframe?.contentWindow?.location?.href) {
+        url = iframe.contentWindow.location.href;
+      }
+    } catch (err) {
+      // Cross-origin, intentar con el src
+      if (iframe?.src) {
+        url = iframe.src;
+      }
+    }
+    
+    // Ir a blank con la URL como parámetro
+    window.location.href = '/blank?url=' + encodeURIComponent(url);
+  });
+</script>

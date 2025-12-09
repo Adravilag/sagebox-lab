@@ -1,0 +1,78 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Preview from '../components/Preview.astro';
+import StylePanel from '../components/StylePanel.astro';
+---
+
+<Layout title="Style Editor - SageBox">
+  <div class="app">
+    <Header />
+    <div class="main">
+      <Sidebar />
+      <Preview />
+      <StylePanel />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  // Declaración de tipo para Window
+  declare global {
+    interface Window {
+      styleEditorState: {
+        selectedComponent: string | null;
+        selectedElement: Element | null;
+        tokens: Record<string, unknown>;
+        history: unknown[];
+        historyIndex: number;
+      };
+    }
+  }
+
+  // Estado global del editor
+  window.styleEditorState = {
+    selectedComponent: null,
+    selectedElement: null,
+    tokens: {},
+    history: [],
+    historyIndex: -1,
+  };
+
+  // Comunicación con el iframe del preview
+  window.addEventListener('message', (event) => {
+    if (event.data.type === 'element-selected') {
+      document.dispatchEvent(new CustomEvent('style-editor:element-selected', {
+        detail: event.data.payload
+      }));
+    }
+  });
+
+  // Undo/Redo
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        document.dispatchEvent(new CustomEvent('style-editor:redo'));
+      } else {
+        document.dispatchEvent(new CustomEvent('style-editor:undo'));
+      }
+    }
+  });
+</script>

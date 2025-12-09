@@ -1,0 +1,242 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Setup - Style Editor">
+  <div class="setup-page">
+    <div class="setup-content">
+      <h1>🎨 Configurar Style Editor Bridge</h1>
+      <p class="subtitle">Para poder inspeccionar y editar elementos en tiempo real, necesitas añadir el bridge a tu proyecto.</p>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Copia el script bridge</h3>
+          <p>Descarga o copia el archivo <code>bridge.js</code> a tu proyecto:</p>
+          <pre><code>curl -o src/assets/style-editor-bridge.js http://localhost:4568/bridge.js</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Añade el script a tu proyecto</h3>
+          
+          <div class="tabs">
+            <button class="tab active" data-tab="angular">Angular</button>
+            <button class="tab" data-tab="react">React</button>
+            <button class="tab" data-tab="vue">Vue</button>
+            <button class="tab" data-tab="html">HTML</button>
+          </div>
+
+          <div class="tab-content active" data-content="angular">
+            <p>En <code>angular.json</code>, añade el script:</p>
+            <pre><code set:html={`{
+  "projects": {
+    "tu-app": {
+      "architect": {
+        "build": {
+          "options": {
+            "scripts": [
+              "src/assets/style-editor-bridge.js"
+            ]
+          }
+        }
+      }
+    }
+  }
+}`}></code></pre>
+          </div>
+
+          <div class="tab-content" data-content="react">
+            <p>En <code>src/index.tsx</code> o <code>main.tsx</code>:</p>
+            <pre><code set:html={`// Solo en desarrollo
+if (process.env.NODE_ENV === 'development') {
+  import('./assets/style-editor-bridge.js');
+}`}></code></pre>
+          </div>
+
+          <div class="tab-content" data-content="vue">
+            <p>En <code>src/main.ts</code>:</p>
+            <pre><code set:html={`// Solo en desarrollo
+if (import.meta.env.DEV) {
+  import('./assets/style-editor-bridge.js');
+}`}></code></pre>
+          </div>
+
+          <div class="tab-content" data-content="html">
+            <p>En tu <code>index.html</code>:</p>
+            <pre><code>&lt;script src="http://localhost:4568/bridge.js"&gt;&lt;/script&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Reinicia tu servidor de desarrollo</h3>
+          <p>Reinicia tu app y abre el Style Editor. Verás "Bridge activo" cuando esté conectado.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>¡Listo!</h3>
+          <p>Activa el modo <strong>Inspeccionar</strong> y haz click en cualquier elemento para editarlo.</p>
+          <a href="/" class="btn">Ir al Editor</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .setup-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--bg);
+  }
+
+  .setup-content {
+    max-width: 700px;
+    width: 100%;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 40px;
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    flex: 1;
+  }
+
+  .step-content h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .step-content p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  pre {
+    background: var(--bg);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-size: 13px;
+    border: 1px solid var(--border);
+  }
+
+  code {
+    font-family: var(--font-mono);
+  }
+
+  p code {
+    background: var(--surface-elevated);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .tab {
+    padding: 8px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tab:hover {
+    color: var(--text);
+  }
+
+  .tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: 14px;
+    transition: background 0.15s ease;
+  }
+
+  .btn:hover {
+    background: var(--accent-hover);
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabId = (tab as HTMLElement).dataset.tab;
+      
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      tab.classList.add('active');
+      document.querySelector(`[data-content="${tabId}"]`)?.classList.add('active');
+    });
+  });
+</script>

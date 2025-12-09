@@ -1,0 +1,143 @@
+---
+// Toast notification component
+---
+
+<div class="im-toast-container" id="im-toast-container"></div>
+
+<template id="im-toast-template">
+  <div class="im-toast">
+    <div class="im-toast-icon"></div>
+    <div class="im-toast-message"></div>
+    <button class="im-toast-close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</template>
+
+<style is:global>
+  .im-toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
+
+  .im-toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    color: #f4f4f5;
+    font-size: 0.875rem;
+    pointer-events: auto;
+    transform: translateX(120%);
+    animation: im-toast-in 300ms ease forwards;
+  }
+
+  .im-toast.out {
+    animation: im-toast-out 300ms ease forwards;
+  }
+
+  @keyframes im-toast-in {
+    to { transform: translateX(0); }
+  }
+
+  @keyframes im-toast-out {
+    to { transform: translateX(120%); opacity: 0; }
+  }
+
+  .im-toast-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .im-toast.success .im-toast-icon::before {
+    content: '✓';
+    color: #22c55e;
+    font-weight: bold;
+  }
+
+  .im-toast.error .im-toast-icon::before {
+    content: '✕';
+    color: #ef4444;
+    font-weight: bold;
+  }
+
+  .im-toast.info .im-toast-icon::before {
+    content: 'ℹ';
+    color: #6366f1;
+    font-weight: bold;
+  }
+
+  .im-toast-message {
+    flex: 1;
+  }
+
+  .im-toast-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #71717a;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+  }
+
+  .im-toast-close:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+</style>
+
+<script>
+  // Toast utility for client-side use
+  declare global {
+    interface Window {
+      showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    }
+  }
+
+  window.showToast = function(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    const container = document.getElementById('im-toast-container');
+    const template = document.getElementById('im-toast-template') as HTMLTemplateElement;
+    
+    if (!container || !template) return;
+    
+    const toast = template.content.cloneNode(true) as DocumentFragment;
+    const toastEl = toast.querySelector('.im-toast') as HTMLElement;
+    const messageEl = toast.querySelector('.im-toast-message') as HTMLElement;
+    const closeBtn = toast.querySelector('.im-toast-close') as HTMLButtonElement;
+    
+    toastEl.classList.add(type);
+    messageEl.textContent = message;
+    
+    const remove = () => {
+      toastEl.classList.add('out');
+      setTimeout(() => toastEl.remove(), 300);
+    };
+    
+    closeBtn.addEventListener('click', remove);
+    setTimeout(remove, 4000);
+    
+    container.appendChild(toast);
+  };
+</script>
