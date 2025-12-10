@@ -812,6 +812,17 @@ const jsTranslations = {
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  /* Deep search icon set badge */
+  .im-icon-item small.im-icon-set {
+    display: block;
+    font-size: 0.6rem;
+    color: #6366f1;
+    opacity: 0.7;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 </style>
 
 <script define:vars={{ importedNames: Array.from(importedNames), translations: jsTranslations }}>
@@ -1189,4 +1200,260 @@ const jsTranslations = {
 </script>
 
 <!-- Iconify for icon previews -->
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" is:inline></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js" is:inline>
+  // ============================================
+  // DEEP SEARCH - Search across all icon sets
+  // ============================================
+  let allSetsData = new Map(); // Cache for all sets data
+  let isDeepSearchMode = false;
+  let deepSearchResults = [];
+  
+  async function loadAllSetsForSearch(query) {
+    if (!query || query.length < 2) return [];
+    
+    const results = [];
+    const setButtons = setSelector?.querySelectorAll('.im-set-item');
+    const allPrefixes = Array.from(setButtons || []).map(b => b.dataset.set);
+    
+    // Show loading state
+    grid.innerHTML = `
+      <div class="im-loading">
+        <div class="im-spinner"></div>
+        <span>Searching "${query}" in ${allPrefixes.length} icon sets...</span>
+      </div>
+    `;
+    
+    // Load all sets in parallel (with rate limiting)
+    const batchSize = 5;
+    for (let i = 0; i < allPrefixes.length; i += batchSize) {
+      const batch = allPrefixes.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (prefix) => {
+        try {
+          // Check cache first
+          if (!allSetsData.has(prefix)) {
+            const response = await fetch(`https://api.iconify.design/collection?prefix=${prefix}`);
+            const data = await response.json();
+            let iconNames = [];
+            if (data.uncategorized) {
+              iconNames = data.uncategorized;
+            } else if (data.categories) {
+              iconNames = Object.values(data.categories).flat();
+            }
+            allSetsData.set(prefix, iconNames);
+          }
+          
+          // Filter icons matching the query
+          const setIcons = allSetsData.get(prefix) || [];
+          const queryLower = query.toLowerCase();
+          const matching = setIcons.filter(name => 
+            name.toLowerCase().includes(queryLower)
+          );
+          
+          if (matching.length > 0) {
+            matching.forEach(name => {
+              results.push({ prefix, name, fullName: `${prefix}:${name}` });
+            });
+          }
+        } catch (e) {
+          console.warn(`Failed to load ${prefix}:`, e);
+        }
+      }));
+      
+      // Update progress
+      const progress = Math.min(100, Math.round((i + batchSize) / allPrefixes.length * 100));
+      grid.innerHTML = `
+        <div class="im-loading">
+          <div class="im-spinner"></div>
+          <span>Searching "${query}"... ${progress}% (${results.length} found)</span>
+        </div>
+      `;
+    }
+    
+    return results;
+  }
+  
+  function renderDeepSearchResults() {
+    const filtered = deepSearchResults;
+    const search = searchInput?.value.trim().toLowerCase();
+    
+    let displayResults = filtered;
+    if (search && search.length >= 2) {
+      displayResults = filtered.filter(r => r.name.toLowerCase().includes(search));
+    }
+    
+    if (displayResults.length === 0) {
+      grid.innerHTML = `<div class="im-placeholder"><p>${translations.noResults}</p></div>`;
+      if (pagination) pagination.style.display = 'none';
+      if (statusText) statusText.textContent = translations.noResults;
+      return;
+    }
+    
+    // Group by prefix for status
+    const prefixes = new Set(displayResults.map(r => r.prefix));
+    if (statusText) statusText.textContent = `${displayResults.length} icons found in ${prefixes.size} sets`;
+    if (selectAllBtn) selectAllBtn.disabled = false;
+    
+    // Pagination
+    totalPages = Math.ceil(displayResults.length / iconsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    
+    const startIdx = (currentPage - 1) * iconsPerPage;
+    const endIdx = startIdx + iconsPerPage;
+    const toRender = displayResults.slice(startIdx, endIdx);
+    
+    grid.innerHTML = toRender.map(item => {
+      const isImported = importedSet.has(item.fullName);
+      const isSelected = selectedIcons.has(item.fullName);
+      
+      return `
+        <div class="im-icon-item ${isImported ? 'disabled' : ''} ${isSelected ? 'selected' : ''}"
+             data-name="${item.fullName}" data-prefix="${item.prefix}" ${isImported ? `title="${translations.alreadyImported}"` : ''}>
+          <iconify-icon icon="${item.fullName}"></iconify-icon>
+          <span>${item.name}</span>
+          <small class="im-icon-set">${item.prefix}</small>
+        </div>
+      `;
+    }).join('');
+    
+    // Pagination UI
+    if (totalPages > 1) {
+      if (pagination) pagination.style.display = 'flex';
+      const start = (currentPage - 1) * iconsPerPage + 1;
+      const end = Math.min(currentPage * iconsPerPage, displayResults.length);
+      if (rangeEl) rangeEl.textContent = `${start}-${end}`;
+      if (totalIconsEl) totalIconsEl.textContent = displayResults.length.toString();
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+    } else {
+      if (pagination) pagination.style.display = 'none';
+    }
+    
+    // Click handlers for deep search results
+    grid.querySelectorAll('.im-icon-item:not(.disabled)').forEach(item => {
+      item.addEventListener('click', () => {
+        const fullName = item.dataset.name;
+        if (selectedIcons.has(fullName)) {
+          selectedIcons.delete(fullName);
+          item.classList.remove('selected');
+        } else {
+          selectedIcons.add(fullName);
+          item.classList.add('selected');
+        }
+        updateCounts();
+      });
+    });
+  }
+  
+  // Open modal with deep search
+  async function openModalWithSearch(query) {
+    modal?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    
+    if (!query || query.length < 2) return;
+    
+    // Set search input
+    if (searchInput) searchInput.value = query;
+    
+    // Clear set selection (we're searching all)
+    setSelector?.querySelectorAll('.im-set-item').forEach(b => b.classList.remove('active'));
+    
+    // Enable deep search mode
+    isDeepSearchMode = true;
+    currentSet = null;
+    icons = [];
+    selectedIcons.clear();
+    currentPage = 1;
+    
+    // Load all sets and search
+    deepSearchResults = await loadAllSetsForSearch(query);
+    renderDeepSearchResults();
+  }
+  
+  // Expose for VS Code
+  window.openImportModalWithSearch = openModalWithSearch;
+  
+  // Override search input for deep search mode
+  const originalSearchHandler = searchInput?.oninput;
+  searchInput?.addEventListener('input', () => {
+    if (isDeepSearchMode && deepSearchResults.length > 0) {
+      clearTimeout(window._importSearchTimeout);
+      window._importSearchTimeout = setTimeout(() => {
+        currentPage = 1;
+        renderDeepSearchResults();
+      }, 200);
+    }
+  });
+  
+  // Override select all for deep search mode
+  const originalSelectAllHandler = selectAllBtn?.onclick;
+  selectAllBtn?.addEventListener('click', (e) => {
+    if (!isDeepSearchMode) return;
+    e.stopPropagation();
+    
+    const search = searchInput?.value.trim().toLowerCase();
+    let displayResults = deepSearchResults;
+    if (search && search.length >= 2) {
+      displayResults = displayResults.filter(r => r.name.toLowerCase().includes(search));
+    }
+    
+    const startIdx = (currentPage - 1) * iconsPerPage;
+    const endIdx = startIdx + iconsPerPage;
+    const pageItems = displayResults.slice(startIdx, endIdx);
+    const selectable = pageItems.filter(item => !importedSet.has(item.fullName));
+    
+    const allSelected = selectable.every(item => selectedIcons.has(item.fullName));
+    
+    if (allSelected) {
+      selectable.forEach(item => selectedIcons.delete(item.fullName));
+    } else {
+      selectable.forEach(item => selectedIcons.add(item.fullName));
+    }
+    
+    renderDeepSearchResults();
+    updateCounts();
+  }, true);
+  
+  // Override submit for deep search mode
+  const originalSubmitHandler = submitBtn?.onclick;
+  submitBtn?.addEventListener('click', async (e) => {
+    if (!isDeepSearchMode || selectedIcons.size === 0) return;
+    e.stopPropagation();
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="im-spinner" style="width:16px;height:16px;border-width:2px"></div> Importing...';
+    
+    try {
+      const iconsToImport = Array.from(selectedIcons);
+      
+      const response = await fetch('/api/import-icons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ icons: iconsToImport })
+      });
+      
+      if (!response.ok) throw new Error('Import failed');
+      
+      iconsToImport.forEach(name => importedSet.add(name));
+      selectedIcons.clear();
+      
+      closeModal();
+      window.location.reload();
+    } catch (error) {
+      console.error('Import failed:', error);
+      alert('Failed to import icons. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `Import (0)`;
+      updateCounts();
+    }
+  }, true);
+  
+  // Reset deep search mode when modal closes
+  modal?.addEventListener('transitionend', () => {
+    if (!modal.classList.contains('open')) {
+      isDeepSearchMode = false;
+      deepSearchResults = [];
+    }
+  });
+
+</script>

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "SageBox Lab - Development tools for SageBox UI components",
   "type": "module",
+  "packageManager": "npm@10.2.0",
   "main": "dist/cli/index.js",
   "bin": {
     "sagebox-lab": "./bin/cli.js"

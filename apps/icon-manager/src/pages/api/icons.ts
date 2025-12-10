@@ -56,8 +56,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // New icons are added but NOT in project by default
-    icons.push({ name, content, inProject: false });
+    // New icons are added to library (inProject is computed from project-icons.json)
+    icons.push({ name, content });
     await saveIcons(icons);
 
     return new Response(JSON.stringify({ success: true, name }), {

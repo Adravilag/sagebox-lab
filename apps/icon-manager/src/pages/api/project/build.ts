@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { exportProjectIcons, readProjectIcons } from '../../../lib/icons';
+import { generateLicenseFile, generateIndividualLicenses } from '../../../lib/licenses';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -137,11 +138,39 @@ export const POST: APIRoute = async () => {
 
     fs.writeFileSync(iconsPath, tsContent, 'utf-8');
 
+    // Generate license files
+    const usedPrefixes = icons
+      .map(icon => icon.name.split(':')[0])
+      .filter(Boolean);
+    
+    // Create licenses directory
+    const licensesDir = path.join(dir, 'licenses');
+    if (!fs.existsSync(licensesDir)) {
+      fs.mkdirSync(licensesDir, { recursive: true });
+    }
+
+    // Write combined license file
+    const combinedLicense = generateLicenseFile(usedPrefixes);
+    fs.writeFileSync(path.join(licensesDir, 'LICENSES.md'), combinedLicense, 'utf-8');
+
+    // Write individual license files
+    const individualLicenses = generateIndividualLicenses(usedPrefixes);
+    for (const [filename, content] of Object.entries(individualLicenses)) {
+      fs.writeFileSync(path.join(licensesDir, filename), content, 'utf-8');
+    }
+
+    const uniquePrefixes = [...new Set(usedPrefixes)];
+
     return new Response(JSON.stringify({
       success: true,
       message: `Built ${icons.length} icons to sg-icon component`,
       count: icons.length,
-      path: iconsPath
+      path: iconsPath,
+      licenses: {
+        count: uniquePrefixes.length,
+        sets: uniquePrefixes,
+        path: licensesDir
+      }
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

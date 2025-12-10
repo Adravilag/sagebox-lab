@@ -32,6 +32,9 @@ export const DEFAULT_LOCALE: Locale = 'en';
 export interface Translations {
   // Header
   'header.search.placeholder': string;
+  'header.search.placeholder_online': string;
+  'header.search.local': string;
+  'header.search.online': string;
   'header.add': string;
   'header.import': string;
   'header.icons': string;
@@ -73,6 +76,7 @@ export interface Translations {
   'selection.select_all': string;
   'selection.clear': string;
   'selection.add_to_project': string;
+  'selection.add_to_library': string;
   'selection.remove_from_project': string;
   'selection.export': string;
   'selection.delete': string;
@@ -82,7 +86,9 @@ export interface Translations {
   'action.copy_name': string;
   'action.favorite': string;
   'action.favorited': string;
+  'action.rename': string;
   'action.delete': string;
+  'action.edit': string;
   'action.build': string;
   'action.export': string;
 
@@ -150,6 +156,7 @@ export interface Translations {
   'toast.added_favorites': string;
   'toast.removed_favorites': string;
   'toast.icon_added': string;
+  'toast.icon_renamed': string;
   'toast.icon_deleted': string;
   'toast.added_to_project': string;
   'toast.removed_from_project': string;
@@ -163,6 +170,8 @@ export interface Translations {
   // Confirmations
   'confirm.delete_icon': string;
   'confirm.delete_icons': string;
+  'confirm.rename_icon': string;
+  'confirm.rename_icon_placeholder': string;
 
   // Empty states
   'empty.no_icons': string;
@@ -181,6 +190,9 @@ export interface Translations {
 const en: Translations = {
   // Header
   'header.search.placeholder': 'Search icons... (use /regex/ for patterns)',
+  'header.search.placeholder_online': 'Search online icons...',
+  'header.search.local': 'Library',
+  'header.search.online': 'Online',
   'header.add': 'Add Icon',
   'header.import': 'Import Set',
   'header.icons': 'icons',
@@ -222,6 +234,7 @@ const en: Translations = {
   'selection.select_all': 'Select All',
   'selection.clear': 'Clear',
   'selection.add_to_project': 'Add to Project',
+  'selection.add_to_library': 'Add to Library',
   'selection.remove_from_project': 'Remove from Project',
   'selection.export': 'Export',
   'selection.delete': 'Delete',
@@ -231,7 +244,9 @@ const en: Translations = {
   'action.copy_name': 'Copy Name',
   'action.favorite': 'Favorite',
   'action.favorited': 'Favorited',
+  'action.rename': 'Rename',
   'action.delete': 'Delete',
+  'action.edit': 'Edit',
   'action.build': 'Build for sg-icon',
   'action.export': 'Export JSON',
 
@@ -299,6 +314,7 @@ const en: Translations = {
   'toast.added_favorites': 'Added to favorites',
   'toast.removed_favorites': 'Removed from favorites',
   'toast.icon_added': 'Icon added successfully',
+  'toast.icon_renamed': 'Icon renamed successfully',
   'toast.icon_deleted': 'Icon deleted',
   'toast.added_to_project': 'icons added to project',
   'toast.removed_from_project': 'icons removed from project',
@@ -312,6 +328,8 @@ const en: Translations = {
   // Confirmations
   'confirm.delete_icon': 'Delete icon',
   'confirm.delete_icons': 'Delete icons?',
+  'confirm.rename_icon': 'Enter new name for',
+  'confirm.rename_icon_placeholder': 'new-icon-name',
 
   // Empty states
   'empty.no_icons': 'No icons found',
@@ -330,6 +348,9 @@ const en: Translations = {
 const es: Translations = {
   // Header
   'header.search.placeholder': 'Buscar iconos... (usa /regex/ para patrones)',
+  'header.search.placeholder_online': 'Buscar iconos online...',
+  'header.search.local': 'Biblioteca',
+  'header.search.online': 'Online',
   'header.add': 'Añadir',
   'header.import': 'Importar',
   'header.icons': 'iconos',
@@ -371,6 +392,7 @@ const es: Translations = {
   'selection.select_all': 'Seleccionar todo',
   'selection.clear': 'Limpiar',
   'selection.add_to_project': 'Añadir al Proyecto',
+  'selection.add_to_library': 'Añadir a Biblioteca',
   'selection.remove_from_project': 'Quitar del Proyecto',
   'selection.export': 'Exportar',
   'selection.delete': 'Eliminar',
@@ -380,7 +402,9 @@ const es: Translations = {
   'action.copy_name': 'Copiar Nombre',
   'action.favorite': 'Favorito',
   'action.favorited': 'En favoritos',
+  'action.rename': 'Renombrar',
   'action.delete': 'Eliminar',
+  'action.edit': 'Editar',
   'action.build': 'Generar para sg-icon',
   'action.export': 'Exportar JSON',
 
@@ -448,6 +472,7 @@ const es: Translations = {
   'toast.added_favorites': 'Añadido a favoritos',
   'toast.removed_favorites': 'Eliminado de favoritos',
   'toast.icon_added': 'Icono añadido correctamente',
+  'toast.icon_renamed': 'Icono renombrado correctamente',
   'toast.icon_deleted': 'Icono eliminado',
   'toast.added_to_project': 'iconos añadidos al proyecto',
   'toast.removed_from_project': 'iconos eliminados del proyecto',
@@ -461,6 +486,8 @@ const es: Translations = {
   // Confirmations
   'confirm.delete_icon': '¿Eliminar icono',
   'confirm.delete_icons': '¿Eliminar iconos?',
+  'confirm.rename_icon': 'Introduce el nuevo nombre para',
+  'confirm.rename_icon_placeholder': 'nuevo-nombre-icono',
 
   // Empty states
   'empty.no_icons': 'No se encontraron iconos',
@@ -479,6 +506,9 @@ const es: Translations = {
 const ca: Translations = {
   // Header
   'header.search.placeholder': 'Cercar icones... (usa /regex/ per patrons)',
+  'header.search.placeholder_online': 'Cercar icones online...',
+  'header.search.local': 'Biblioteca',
+  'header.search.online': 'Online',
   'header.add': 'Afegir',
   'header.import': 'Importar',
   'header.icons': 'icones',
@@ -520,6 +550,7 @@ const ca: Translations = {
   'selection.select_all': 'Seleccionar tot',
   'selection.clear': 'Netejar',
   'selection.add_to_project': 'Afegir al Projecte',
+  'selection.add_to_library': 'Afegir a Biblioteca',
   'selection.remove_from_project': 'Treure del Projecte',
   'selection.export': 'Exportar',
   'selection.delete': 'Eliminar',
@@ -529,7 +560,9 @@ const ca: Translations = {
   'action.copy_name': 'Copiar Nom',
   'action.favorite': 'Preferida',
   'action.favorited': 'A preferides',
+  'action.rename': 'Canviar nom',
   'action.delete': 'Eliminar',
+  'action.edit': 'Editar',
   'action.build': 'Generar per sg-icon',
   'action.export': 'Exportar JSON',
 
@@ -597,6 +630,7 @@ const ca: Translations = {
   'toast.added_favorites': 'Afegit a preferides',
   'toast.removed_favorites': 'Eliminat de preferides',
   'toast.icon_added': 'Icona afegida correctament',
+  'toast.icon_renamed': 'Icona canviada de nom correctament',
   'toast.icon_deleted': 'Icona eliminada',
   'toast.added_to_project': 'icones afegides al projecte',
   'toast.removed_from_project': 'icones eliminades del projecte',
@@ -610,6 +644,8 @@ const ca: Translations = {
   // Confirmations
   'confirm.delete_icon': 'Eliminar icona',
   'confirm.delete_icons': 'Eliminar icones?',
+  'confirm.rename_icon': 'Introdueix el nou nom per a',
+  'confirm.rename_icon_placeholder': 'nou-nom-icona',
 
   // Empty states
   'empty.no_icons': 'No s\'han trobat icones',

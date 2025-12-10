@@ -1,0 +1,912 @@
+﻿---
+import { SUPPORTED_LOCALES, LOCALE_FLAGS, LOCALE_NAMES, LOCALE_COUNTRY_CODES, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'en' } = Astro.props;
+---
+
+<!-- Config Modal -->
+<div class="im-config-modal" id="im-config-modal">
+  <div class="im-config-modal-backdrop"></div>
+  <div class="im-config-modal-content">
+    <div class="im-config-modal-header">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Icons Output Configuration
+      </h3>
+      <button class="im-config-close" id="im-config-close" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="im-config-modal-body">
+      <!-- Workspace info -->
+      <div class="im-config-workspace-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span id="im-config-workspace-path">Workspace</span>
+      </div>
+
+      <!-- Path input with browse -->
+      <div class="im-config-field">
+        <label for="im-config-icons-path">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Output Folder Path
+        </label>
+        <p class="im-config-field-desc">Paste the absolute path where <code>project-icons.json</code> will be saved</p>
+        <div class="im-config-input-row">
+          <div class="im-config-input-wrapper">
+            <input type="text" id="im-config-icons-path" placeholder="D:/Projects/MyApp/src/icons" spellcheck="false" />
+          </div>
+          <button class="im-btn im-btn-icon" id="im-config-browse" type="button" title="Browse for folder">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              <line x1="12" y1="11" x2="12" y2="17"></line>
+              <line x1="9" y1="14" x2="15" y2="14"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="im-config-suggestions">
+          <span class="im-config-suggestion-label">Quick select:</span>
+          <button class="im-config-suggestion" data-path="src/icons">src/icons</button>
+          <button class="im-config-suggestion" data-path="frontend/src/icons">frontend/src/icons</button>
+          <button class="im-config-suggestion" data-path="assets/icons">assets/icons</button>
+        </div>
+      </div>
+
+      <!-- Language Selector -->
+      <div class="im-config-field">
+        <label>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          Language
+        </label>
+        <p class="im-config-field-desc">Select your preferred language for the interface</p>
+        <div class="im-config-lang-grid" id="im-config-lang-grid">
+          {SUPPORTED_LOCALES.map((lang) => (
+            <button
+              class:list={["im-config-lang-btn", { active: locale === lang }]}
+              data-lang={lang}
+              type="button"
+            >
+              <img src={`https://hatscripts.github.io/circle-flags/flags/${LOCALE_COUNTRY_CODES[lang]}.svg`} alt="" width="20" height="20" />
+              <span>{LOCALE_NAMES[lang]}</span>
+              {locale === lang && (
+                <svg class="im-config-lang-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Global Library Path (Read-only info) -->
+      <div class="im-config-field im-config-library-info">
+        <label>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          Global Library Location
+        </label>
+        <p class="im-config-field-desc">Icon library is stored globally and shared across all projects</p>
+        <div class="im-config-library-path">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <code id="im-config-library-path">Loading...</code>
+          <button class="im-btn im-btn-icon im-btn-small" id="im-config-copy-library-path" type="button" title="Copy path">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Output preview -->
+      <div class="im-config-preview">
+        <div class="im-config-preview-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          Output files will be created at:
+        </div>
+        <div class="im-config-preview-path" id="im-config-full-path">
+          <span class="im-path-base"></span><span class="im-path-folder"></span><span class="im-path-file">/icons.json</span>
+        </div>
+        <div class="im-config-preview-note" id="im-config-folder-status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Folder will be created if it doesn't exist</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="im-config-modal-footer">
+      <span class="im-config-status" id="im-config-status"></span>
+      <div class="im-config-actions">
+        <button class="im-btn im-btn-secondary" id="im-config-cancel" type="button">Cancel</button>
+        <button class="im-btn im-btn-primary" id="im-config-save" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .im-config-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .im-config-modal.visible {
+    display: flex;
+  }
+
+  .im-config-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+  }
+
+  .im-config-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 540px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalIn 200ms ease;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+  }
+
+  .im-config-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #27272a;
+  }
+
+  .im-config-modal-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 0;
+  }
+
+  .im-config-modal-header h3 svg {
+    color: #6366f1;
+  }
+
+  .im-config-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #71717a;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .im-config-close:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .im-config-modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Workspace info bar */
+  .im-config-workspace-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    color: #a5b4fc;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  }
+
+  .im-config-workspace-info svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* Field styles */
+  .im-config-field label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin-bottom: 0.25rem;
+  }
+
+  .im-config-field label svg {
+    color: #71717a;
+  }
+
+  .im-config-field-desc {
+    font-size: 0.8125rem;
+    color: #71717a;
+    margin: 0 0 0.75rem 0;
+  }
+
+  .im-config-field-desc code {
+    padding: 0.125rem 0.375rem;
+    background: #27272a;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #a5b4fc;
+  }
+
+  .im-config-input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .im-config-input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .im-config-input-wrapper input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    color: #f4f4f5;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    transition: 150ms ease;
+  }
+
+  .im-config-input-wrapper input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  .im-config-input-wrapper input::placeholder {
+    color: #52525b;
+  }
+
+  /* Icon button */
+  .im-btn-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 10px;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .im-btn-icon:hover {
+    background: #3f3f46;
+    border-color: #6366f1;
+    color: #f4f4f5;
+  }
+
+  /* Quick suggestions */
+  .im-config-suggestions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .im-config-suggestion-label {
+    font-size: 0.75rem;
+    color: #52525b;
+  }
+
+  .im-config-suggestion {
+    padding: 0.375rem 0.625rem;
+    background: transparent;
+    border: 1px solid #27272a;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    color: #71717a;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .im-config-suggestion:hover {
+    background: #27272a;
+    border-color: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-config-suggestion.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+    color: #a5b4fc;
+  }
+
+  /* Global library info */
+  .im-config-library-info {
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #27272a;
+  }
+
+  .im-config-library-path {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+  }
+
+  .im-config-library-path svg {
+    flex-shrink: 0;
+    color: #6366f1;
+  }
+
+  .im-config-library-path code {
+    flex: 1;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.75rem;
+    color: #a1a1aa;
+    word-break: break-all;
+    background: none;
+    padding: 0;
+  }
+
+  .im-config-library-path .im-btn-small {
+    padding: 0.375rem;
+    min-width: auto;
+  }
+
+  .im-config-library-path .im-btn-small:hover {
+    background: #27272a;
+  }
+
+  /* Preview section */
+  .im-config-preview {
+    padding: 1rem;
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+  }
+
+  .im-config-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #71717a;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .im-config-preview-path {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.875rem;
+    color: #f4f4f5;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  .im-config-preview-path .im-path-base {
+    color: #71717a;
+  }
+
+  .im-config-preview-path .im-path-folder {
+    color: #6366f1;
+    font-weight: 500;
+  }
+
+  .im-config-preview-path .im-path-file {
+    color: #22c55e;
+  }
+
+  .im-config-preview-note {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #27272a;
+    font-size: 0.75rem;
+    color: #71717a;
+  }
+
+  .im-config-preview-note svg {
+    flex-shrink: 0;
+  }
+
+  .im-config-preview-note.exists {
+    color: #22c55e;
+  }
+
+  .im-config-preview-note.exists svg {
+    color: #22c55e;
+  }
+
+  /* Footer */
+  .im-config-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #27272a;
+    background: #141417;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .im-config-status {
+    font-size: 0.8125rem;
+    color: #71717a;
+  }
+
+  .im-config-status.success {
+    color: #22c55e;
+  }
+
+  .im-config-status.error {
+    color: #ef4444;
+  }
+
+  .im-config-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .im-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+    border: none;
+  }
+
+  .im-btn-secondary {
+    background: #27272a;
+    color: #a1a1aa;
+    border: 1px solid #3f3f46;
+  }
+
+  .im-btn-secondary:hover {
+    background: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-btn-primary {
+    background: #6366f1;
+    color: white;
+  }
+
+  .im-btn-primary:hover {
+    background: #4f46e5;
+  }
+
+  .im-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Language Grid */
+  .im-config-lang-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .im-config-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #a1a1aa;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+
+  .im-config-lang-btn:hover {
+    background: #3f3f46;
+    border-color: #52525b;
+    color: #f4f4f5;
+  }
+
+  .im-config-lang-btn.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: #6366f1;
+    color: #f4f4f5;
+  }
+
+  .im-config-lang-btn img {
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .im-config-lang-btn span {
+    flex: 1;
+    text-align: left;
+  }
+
+  .im-config-lang-check {
+    color: #6366f1;
+    flex-shrink: 0;
+  }
+</style>
+
+<script>
+  // VS Code Bridge for Configuration
+  window.vscodeConfig = {
+    iconsPath: 'src/icons',
+    workspacePath: ''
+  };
+
+  // Listen for messages from VS Code extension (via parent window)
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+    
+    if (message.type === 'vscode-config') {
+      window.vscodeConfig = message.config;
+      updateConfigUI();
+    } else if (message.type === 'vscode-folder-selected') {
+      const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+      if (iconsPathInput && message.iconsPath !== undefined) {
+        iconsPathInput.value = message.iconsPath;
+        updatePathPreview();
+        updateSuggestionButtons();
+      }
+    } else if (message.type === 'vscode-config-saved') {
+      const status = document.getElementById('im-config-status');
+      if (status) {
+        status.textContent = ' Configuration saved!';
+        status.className = 'im-config-status success';
+      }
+      window.showToast?.('Configuration saved! Reloading...', 'success');
+      setTimeout(() => {
+        document.getElementById('im-config-modal')?.classList.remove('visible');
+        location.reload();
+      }, 1000);
+    }
+  });
+
+  function updateConfigUI() {
+    const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+    const workspacePathEl = document.getElementById('im-config-workspace-path');
+    const libraryPathEl = document.getElementById('im-config-library-path');
+
+    // Fetch config from API (includes saved outputPath)
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        // Set icons path from saved config or VS Code config
+        if (iconsPathInput) {
+          if (data.outputPath) {
+            iconsPathInput.value = data.outputPath;
+          } else if (window.vscodeConfig?.iconsPath) {
+            iconsPathInput.value = window.vscodeConfig.iconsPath;
+          }
+        }
+        
+        // Show workspace path
+        if (workspacePathEl) {
+          const wsPath = data.workspacePath || window.vscodeConfig?.workspacePath || 'Not connected to workspace';
+          workspacePathEl.textContent = wsPath.replace(/\\/g, '/');
+        }
+        
+        // Show library path
+        if (libraryPathEl) {
+          if (data.libraryIconsPath) {
+            libraryPathEl.textContent = data.libraryIconsPath.replace(/\\/g, '/');
+          } else {
+            libraryPathEl.textContent = 'Not configured';
+          }
+        }
+        
+        updatePathPreview();
+        updateSuggestionButtons();
+      })
+      .catch(() => {
+        // Fallback to VS Code config if available
+        if (iconsPathInput && window.vscodeConfig?.iconsPath) {
+          iconsPathInput.value = window.vscodeConfig.iconsPath;
+        }
+        if (workspacePathEl && window.vscodeConfig?.workspacePath) {
+          workspacePathEl.textContent = window.vscodeConfig.workspacePath.replace(/\\/g, '/');
+        }
+        if (libraryPathEl) {
+          libraryPathEl.textContent = 'Unable to load';
+        }
+        updatePathPreview();
+        updateSuggestionButtons();
+      });
+  }
+
+  function updatePathPreview() {
+    const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+    const previewPath = document.getElementById('im-config-full-path');
+    
+    if (previewPath && window.vscodeConfig.workspacePath) {
+      const basePath = window.vscodeConfig.workspacePath.replace(/\\/g, '/');
+      const folderPath = iconsPathInput?.value || 'src/icons';
+      
+      const baseEl = previewPath.querySelector('.im-path-base');
+      const folderEl = previewPath.querySelector('.im-path-folder');
+      
+      if (baseEl) baseEl.textContent = basePath + '/';
+      if (folderEl) folderEl.textContent = folderPath;
+    }
+  }
+
+  function updateSuggestionButtons() {
+    const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+    const currentValue = iconsPathInput?.value || '';
+    
+    document.querySelectorAll('.im-config-suggestion').forEach(btn => {
+      const path = (btn as HTMLElement).dataset.path;
+      btn.classList.toggle('active', path === currentValue);
+    });
+  }
+
+  async function saveConfig() {
+    const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+    const newPath = iconsPathInput?.value?.trim();
+    const status = document.getElementById('im-config-status');
+
+    if (!newPath) {
+      window.showToast?.('Please enter a valid path', 'error');
+      return;
+    }
+
+    if (status) {
+      status.textContent = 'Saving...';
+      status.className = 'im-config-status';
+    }
+
+    // Check if running inside VS Code extension (iframe)
+    const isInVSCode = window.parent !== window;
+    
+    if (isInVSCode) {
+      // Send message to VS Code extension (via parent window)
+      window.parent.postMessage({
+        type: 'save-config',
+        iconsPath: newPath
+      }, '*');
+    } else {
+      // Save directly via API
+      try {
+        const response = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ iconsPath: newPath })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          if (status) {
+            status.textContent = '✓ Configuration saved!';
+            status.className = 'im-config-status success';
+          }
+          window.showToast?.('Configuration saved!', 'success');
+          
+          // Close modal after a short delay
+          setTimeout(() => {
+            document.getElementById('im-config-modal')?.classList.remove('visible');
+          }, 1000);
+        } else {
+          throw new Error(data.error || 'Failed to save');
+        }
+      } catch (error) {
+        if (status) {
+          status.textContent = '✗ Failed to save';
+          status.className = 'im-config-status error';
+        }
+        window.showToast?.('Failed to save configuration', 'error');
+      }
+    }
+  }
+
+  // Initialize on DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const configModal = document.getElementById('im-config-modal');
+    const configClose = document.getElementById('im-config-close');
+    const configCancel = document.getElementById('im-config-cancel');
+    const configBackdrop = configModal?.querySelector('.im-config-modal-backdrop');
+    const configSave = document.getElementById('im-config-save');
+    const configBrowse = document.getElementById('im-config-browse');
+    const copyLibraryPath = document.getElementById('im-config-copy-library-path');
+    const iconsPathInput = document.getElementById('im-config-icons-path') as HTMLInputElement;
+
+    // Close modal handlers
+    const closeModal = () => configModal?.classList.remove('visible');
+    configClose?.addEventListener('click', closeModal);
+    configCancel?.addEventListener('click', closeModal);
+    configBackdrop?.addEventListener('click', closeModal);
+
+    // Browse button - open native folder picker via server API
+    configBrowse?.addEventListener('click', async () => {
+      // Check if running inside VS Code extension (iframe)
+      const isInVSCode = window.parent !== window;
+      
+      if (isInVSCode) {
+        // Request VS Code to open folder picker
+        window.parent.postMessage({ type: 'browse-folder' }, '*');
+        window.showToast?.('Opening folder selector...', 'info');
+        return;
+      }
+      
+      // Call server API to open native folder dialog
+      try {
+        configBrowse.classList.add('loading');
+        window.showToast?.('Opening folder selector...', 'info');
+        
+        const response = await fetch('/api/browse-folder');
+        const data = await response.json();
+        
+        if (data.success && data.path) {
+          iconsPathInput.value = data.path;
+          updatePathPreview();
+          updateSuggestionButtons();
+          window.showToast?.(`Selected: ${data.path}`, 'success');
+        } else if (!data.success && data.message === 'No folder selected') {
+          // User cancelled - no toast needed
+        } else {
+          window.showToast?.(data.error || 'Could not open folder dialog', 'error');
+        }
+      } catch (error) {
+        window.showToast?.('Failed to open folder selector', 'error');
+      } finally {
+        configBrowse.classList.remove('loading');
+      }
+    });
+    
+    // Copy library path to clipboard
+    copyLibraryPath?.addEventListener('click', async () => {
+      const libraryPathEl = document.getElementById('im-config-library-path');
+      const path = libraryPathEl?.textContent;
+      if (path && path !== 'Loading...' && path !== 'Not configured') {
+        try {
+          await navigator.clipboard.writeText(path);
+          window.showToast?.('Path copied to clipboard', 'success');
+        } catch {
+          window.showToast?.('Failed to copy path', 'error');
+        }
+      }
+    });
+
+    // Save handler
+    configSave?.addEventListener('click', saveConfig);
+
+    // Enter key to save
+    iconsPathInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') saveConfig();
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Update preview on input change
+    iconsPathInput?.addEventListener('input', () => {
+      updatePathPreview();
+      updateSuggestionButtons();
+    });
+
+    // Quick suggestion buttons
+    document.querySelectorAll('.im-config-suggestion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const path = (btn as HTMLElement).dataset.path;
+        if (path && iconsPathInput) {
+          iconsPathInput.value = path;
+          updatePathPreview();
+          updateSuggestionButtons();
+        }
+      });
+    });
+
+    // Language selector buttons
+    document.querySelectorAll('.im-config-lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = (btn as HTMLElement).dataset.lang;
+        if (lang) {
+          // Update URL with new language and reload
+          const url = new URL(window.location.href);
+          url.searchParams.set('lang', lang);
+          window.location.href = url.toString();
+        }
+      });
+    });
+
+    // Initial UI update
+    updateConfigUI();
+
+    // Expose function to open config modal
+    window.openConfigModal = () => {
+      configModal?.classList.add('visible');
+      updateConfigUI();
+      iconsPathInput?.focus();
+      iconsPathInput?.select();
+    };
+  });
+
+  // Type declarations
+  declare global {
+    interface Window {
+      vscodeConfig: { iconsPath: string; workspacePath: string };
+      openConfigModal: () => void;
+      showToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+    }
+  }
+</script>

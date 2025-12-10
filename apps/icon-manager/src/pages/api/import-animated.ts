@@ -6,10 +6,10 @@ export const POST: APIRoute = async () => {
     const currentIcons = await readIcons();
     const existingNames = new Set(currentIcons.map(icon => icon.name));
 
-    // Add animated icons that don't already exist
+    // Add animated icons that don't already exist (inProject is computed from project-icons.json)
     const newIcons = Object.entries(ANIMATED_ICONS)
       .filter(([name]) => !existingNames.has(name))
-      .map(([name, content]) => ({ name, content, inProject: false }));
+      .map(([name, content]) => ({ name, content }));
 
     if (newIcons.length === 0) {
       return new Response(JSON.stringify({

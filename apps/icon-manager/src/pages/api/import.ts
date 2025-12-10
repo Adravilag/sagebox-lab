@@ -99,8 +99,8 @@ export const POST: APIRoute = async ({ request }) => {
 
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
 
-        // New icons are imported but NOT added to project by default
-        icons.push({ name: fullName, content: svg, inProject: false });
+        // New icons are imported to library (inProject is computed from project-icons.json)
+        icons.push({ name: fullName, content: svg });
         imported++;
       }
     }

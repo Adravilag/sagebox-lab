@@ -65,8 +65,8 @@ export const POST: APIRoute = async ({ request }) => {
 
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
 
-            // New icons are imported but NOT added to project by default
-            newIcons.push({ name: fullName, content: svg, inProject: false });
+            // New icons are imported to library (inProject is computed from project-icons.json)
+            newIcons.push({ name: fullName, content: svg });
           }
         } catch (error) {
           console.error(`Failed to fetch icons for ${prefix}:`, error);

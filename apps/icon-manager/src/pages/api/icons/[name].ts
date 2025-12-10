@@ -1,6 +1,64 @@
 import type { APIRoute } from 'astro';
 import { readIcons, saveIcons, removeFromProject } from '../../../lib/icons.ts';
 
+// PUT /api/icons/[name]/ - Update an icon
+export const PUT: APIRoute = async ({ params, request }) => {
+  try {
+    const name = decodeURIComponent(params.name || '');
+
+    if (!name) {
+      return new Response(JSON.stringify({ error: 'Icon name is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const body = await request.json();
+    const { content } = body;
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: 'Icon content is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const icons = await readIcons();
+    const index = icons.findIndex(icon => icon.name === name);
+
+    if (index === -1) {
+      return new Response(JSON.stringify({ error: `Icon "${name}" not found` }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Update the icon
+    icons[index] = {
+      ...icons[index],
+      content,
+      updatedAt: new Date().toISOString()
+    };
+
+    await saveIcons(icons);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      name,
+      icon: icons[index]
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error updating icon:', error);
+    return new Response(JSON.stringify({ error: 'Failed to update icon' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
+
 // DELETE /api/icons/[name]/ - Delete an icon
 export const DELETE: APIRoute = async ({ params }) => {
   try {

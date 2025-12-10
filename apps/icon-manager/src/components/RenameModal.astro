@@ -1,0 +1,386 @@
+---
+import { t, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'en' } = Astro.props;
+const i18n = (key: Parameters<typeof t>[0]) => t(key, locale);
+---
+
+<div class="im-modal" id="im-rename-modal">
+  <div class="im-modal-backdrop"></div>
+  <div class="im-modal-content im-modal-small">
+    <div class="im-modal-header">
+      <div class="im-modal-title-group">
+        <div class="im-modal-icon rename-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+          </svg>
+        </div>
+        <div>
+          <h2>{i18n('action.rename')}</h2>
+          <p class="im-modal-subtitle" id="im-rename-subtitle"></p>
+        </div>
+      </div>
+      <button class="im-modal-close" id="im-rename-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <form id="im-rename-form">
+      <input type="hidden" id="im-rename-old-name" name="oldName" />
+      
+      <div class="im-form-group">
+        <label for="im-rename-new-name">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          {i18n('modal.add.name')}
+        </label>
+        <input
+          type="text"
+          id="im-rename-new-name"
+          name="newName"
+          placeholder={i18n('confirm.rename_icon_placeholder')}
+          required
+          pattern="^[a-z0-9:-]+$"
+          autocomplete="off"
+        />
+        <span class="im-input-hint">{i18n('modal.add.name_hint')}</span>
+      </div>
+
+      <div class="im-modal-actions">
+        <button type="button" class="im-btn im-btn-secondary" id="im-rename-cancel">
+          {i18n('modal.cancel')}
+        </button>
+        <button type="submit" class="im-btn im-btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          {i18n('action.rename')}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .im-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .im-modal.open {
+    display: flex;
+  }
+
+  .im-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .im-modal-content {
+    position: relative;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 200ms ease;
+  }
+
+  .im-modal-small {
+    max-width: 400px;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .im-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid #27272a;
+  }
+
+  .im-modal-title-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .im-modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .im-modal-icon.rename-icon {
+    background: rgba(234, 179, 8, 0.2);
+    color: #eab308;
+  }
+
+  .im-modal-title-group h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 0;
+  }
+
+  .im-modal-subtitle {
+    font-size: 0.875rem;
+    color: #71717a;
+    margin: 0.25rem 0 0 0;
+  }
+
+  .im-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #71717a;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+  }
+
+  .im-modal-close:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  #im-rename-form {
+    padding: 1.5rem;
+  }
+
+  .im-form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .im-form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #a1a1aa;
+    margin-bottom: 0.5rem;
+  }
+
+  .im-form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    color: #f4f4f5;
+    font-size: 0.9375rem;
+    transition: 150ms ease;
+  }
+
+  .im-form-group input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .im-form-group input::placeholder {
+    color: #52525b;
+  }
+
+  .im-input-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: #52525b;
+    margin-top: 0.375rem;
+  }
+
+  .im-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .im-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+    border: none;
+  }
+
+  .im-btn-secondary {
+    background: #27272a;
+    color: #a1a1aa;
+  }
+
+  .im-btn-secondary:hover {
+    background: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-btn-primary {
+    background: #6366f1;
+    color: white;
+  }
+
+  .im-btn-primary:hover {
+    background: #4f46e5;
+  }
+</style>
+
+<script>
+  // Rename modal functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const renameModal = document.getElementById('im-rename-modal');
+    const renameForm = document.getElementById('im-rename-form') as HTMLFormElement;
+    const renameClose = document.getElementById('im-rename-close');
+    const renameCancel = document.getElementById('im-rename-cancel');
+    const renameBackdrop = renameModal?.querySelector('.im-modal-backdrop');
+    const oldNameInput = document.getElementById('im-rename-old-name') as HTMLInputElement;
+    const newNameInput = document.getElementById('im-rename-new-name') as HTMLInputElement;
+    const subtitleEl = document.getElementById('im-rename-subtitle');
+
+    // Expose function to open rename modal
+    (window as any).openRenameModal = (iconName: string) => {
+      if (renameModal && oldNameInput && newNameInput && subtitleEl) {
+        oldNameInput.value = iconName;
+        newNameInput.value = iconName;
+        subtitleEl.textContent = `"${iconName}"`;
+        renameModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        // Focus and select input
+        setTimeout(() => {
+          newNameInput.focus();
+          newNameInput.select();
+        }, 100);
+      }
+    };
+
+    function closeRenameModal() {
+      renameModal?.classList.remove('open');
+      document.body.style.overflow = '';
+      renameForm?.reset();
+    }
+
+    renameClose?.addEventListener('click', closeRenameModal);
+    renameCancel?.addEventListener('click', closeRenameModal);
+    renameBackdrop?.addEventListener('click', closeRenameModal);
+
+    // Handle Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && renameModal?.classList.contains('open')) {
+        closeRenameModal();
+      }
+    });
+
+    // Handle form submission
+    renameForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const oldName = oldNameInput?.value;
+      const newName = newNameInput?.value?.toLowerCase().trim();
+
+      if (!oldName || !newName) return;
+
+      // Validate name format
+      if (!/^[a-z0-9:-]+$/.test(newName)) {
+        (window as any).showToast?.('Invalid name. Use lowercase, numbers, hyphens, and colons only.', 'error');
+        return;
+      }
+
+      if (oldName === newName) {
+        closeRenameModal();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/icons/rename/', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldName, newName })
+        });
+
+        if (res.ok) {
+          (window as any).showToast?.(`Icon renamed to "${newName}"`, 'success');
+          closeRenameModal();
+          
+          // Update the card in the DOM
+          const card = document.querySelector(`.im-icon-card[data-name="${oldName}"]`) as HTMLElement;
+          if (card) {
+            card.dataset.name = newName;
+            const nameEl = card.querySelector('.im-icon-name');
+            if (nameEl) {
+              nameEl.textContent = newName;
+              nameEl.setAttribute('title', newName);
+            }
+            // Update category display if prefix changed
+            const newPrefix = newName.includes(':') ? newName.split(':')[0] : 'custom';
+            const categoryEl = card.querySelector('.im-icon-category');
+            if (categoryEl) {
+              categoryEl.textContent = newPrefix;
+            }
+            card.dataset.category = newPrefix;
+          }
+
+          // Update favorites localStorage if needed
+          const FAVORITES_KEY = 'saged-icon-favorites';
+          try {
+            const stored = localStorage.getItem(FAVORITES_KEY);
+            if (stored) {
+              const favorites = JSON.parse(stored) as string[];
+              const idx = favorites.indexOf(oldName);
+              if (idx !== -1) {
+                favorites[idx] = newName;
+                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+              }
+            }
+          } catch {}
+        } else {
+          const data = await res.json();
+          (window as any).showToast?.(data.error || 'Failed to rename icon', 'error');
+        }
+      } catch (err) {
+        (window as any).showToast?.('Failed to rename icon', 'error');
+      }
+    });
+  });
+</script>

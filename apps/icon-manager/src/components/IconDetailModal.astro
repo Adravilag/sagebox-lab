@@ -1,0 +1,1487 @@
+---
+import { t, type Locale } from '../lib/i18n';
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'en' } = Astro.props;
+const i18n = (key: Parameters<typeof t>[0]) => t(key, locale);
+---
+
+<div id="icon-detail-modal" class="detail-modal" hidden>
+  <div class="detail-modal-backdrop"></div>
+  <div class="detail-modal-content">
+    <button class="detail-modal-close" aria-label="Close">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="detail-header">
+      <h2 class="detail-icon-name" id="detail-icon-name">icon-name</h2>
+      <span class="detail-icon-category" id="detail-icon-category">category</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="detail-body">
+      <!-- Left: Preview Section -->
+      <div class="detail-preview-section">
+        <!-- Size Preview Grid -->
+        <div class="size-preview-grid">
+          <div class="size-preview" data-size="16">
+            <div class="size-preview-icon" id="preview-16"></div>
+            <span class="size-label">16px</span>
+          </div>
+          <div class="size-preview" data-size="24">
+            <div class="size-preview-icon" id="preview-24"></div>
+            <span class="size-label">24px</span>
+          </div>
+          <div class="size-preview" data-size="32">
+            <div class="size-preview-icon" id="preview-32"></div>
+            <span class="size-label">32px</span>
+          </div>
+          <div class="size-preview" data-size="48">
+            <div class="size-preview-icon" id="preview-48"></div>
+            <span class="size-label">48px</span>
+          </div>
+        </div>
+
+        <!-- Background Toggle -->
+        <div class="background-toggle">
+          <span class="toggle-label">Background</span>
+          <div class="toggle-options">
+            <button class="bg-option active" data-bg="dark" title="Dark background">
+              <span class="bg-swatch dark"></span>
+            </button>
+            <button class="bg-option" data-bg="light" title="Light background">
+              <span class="bg-swatch light"></span>
+            </button>
+            <button class="bg-option" data-bg="checker" title="Transparent (checker)">
+              <span class="bg-swatch checker"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Preview -->
+        <div class="main-preview" id="main-preview">
+          <div class="main-preview-icon" id="main-preview-icon"></div>
+        </div>
+      </div>
+
+      <!-- Right: Controls Section -->
+      <div class="detail-controls-section">
+        <!-- Color Picker -->
+        <div class="control-group">
+          <label class="control-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2a10 10 0 0 0 0 20"/>
+            </svg>
+            Color
+          </label>
+          <div class="color-picker-row">
+            <input type="color" id="icon-color" value="#ffffff" class="color-input" />
+            <input type="text" id="icon-color-text" value="#ffffff" class="color-text-input" placeholder="#ffffff" />
+          </div>
+          <div class="color-presets">
+            <button class="color-preset" data-color="#ffffff" style="background: #ffffff" title="White"></button>
+            <button class="color-preset" data-color="#000000" style="background: #000000" title="Black"></button>
+            <button class="color-preset" data-color="#6366f1" style="background: #6366f1" title="Indigo"></button>
+            <button class="color-preset" data-color="#22c55e" style="background: #22c55e" title="Green"></button>
+            <button class="color-preset" data-color="#ef4444" style="background: #ef4444" title="Red"></button>
+            <button class="color-preset" data-color="#f59e0b" style="background: #f59e0b" title="Amber"></button>
+            <button class="color-preset" data-color="#3b82f6" style="background: #3b82f6" title="Blue"></button>
+            <button class="color-preset" data-color="#a855f7" style="background: #a855f7" title="Purple"></button>
+            <button class="color-preset active" data-color="currentColor" title="Current Color">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M2 12h20"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Size Selector -->
+        <div class="control-group">
+          <label class="control-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 21H3V3"/>
+              <path d="M21 9V3h-6M3 15v6h6"/>
+            </svg>
+            Size
+          </label>
+          <div class="size-selector">
+            <button class="size-btn" data-size="16">16</button>
+            <button class="size-btn" data-size="20">20</button>
+            <button class="size-btn active" data-size="24">24</button>
+            <button class="size-btn" data-size="32">32</button>
+            <button class="size-btn" data-size="48">48</button>
+            <input type="number" id="custom-size" class="custom-size-input" placeholder="Custom" min="8" max="256" />
+          </div>
+        </div>
+
+        <!-- Copy Options -->
+        <div class="control-group">
+          <label class="control-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy as
+          </label>
+          <div class="copy-options">
+            <button class="copy-btn" data-format="svg">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">SVG</span>
+              <span class="copy-btn-hint">Raw SVG code</span>
+            </button>
+            <button class="copy-btn" data-format="name">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">Name</span>
+              <span class="copy-btn-hint">Icon identifier</span>
+            </button>
+            <button class="copy-btn" data-format="react">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 10.11c1.03 0 1.87.84 1.87 1.89 0 1-.84 1.85-1.87 1.85-1.03 0-1.87-.85-1.87-1.85 0-1.05.84-1.89 1.87-1.89M7.37 20c.63.38 2.01-.2 3.6-1.7-.52-.59-1.03-1.23-1.51-1.9-.82-.08-1.63-.2-2.4-.36-.51 2.14-.32 3.61.31 3.96m.71-5.74l-.29-.51c-.11.29-.22.58-.29.86.27.06.57.11.88.16l-.3-.51m6.54-.76l.81-1.5-.81-1.5c-.3-.53-.62-1-.91-1.47C13.17 9 12.6 9 12 9c-.6 0-1.17 0-1.71.03-.29.47-.61.94-.91 1.47L8.57 12l.81 1.5c.3.53.62 1 .91 1.47.54.03 1.11.03 1.71.03.6 0 1.17 0 1.71-.03.29-.47.61-.94.91-1.47M12 6.78c-.19.22-.39.45-.59.72h1.18c-.2-.27-.4-.5-.59-.72m0 10.44c.19-.22.39-.45.59-.72h-1.18c.2.27.4.5.59.72M16.62 4c-.62-.38-2 .2-3.59 1.7.52.59 1.03 1.23 1.51 1.9.82.08 1.63.2 2.4.36.51-2.14.32-3.61-.32-3.96m-.7 5.74l.29.51c.11-.29.22-.58.29-.86-.27-.06-.57-.11-.88-.16l.3.51m1.45-7.05c1.47.84 1.63 3.05 1.01 5.63 2.54.75 4.37 1.99 4.37 3.68 0 1.69-1.83 2.93-4.37 3.68.62 2.58.46 4.79-1.01 5.63-1.46.84-3.45-.12-5.37-1.95-1.92 1.83-3.91 2.79-5.38 1.95-1.46-.84-1.62-3.05-1-5.63-2.54-.75-4.37-1.99-4.37-3.68 0-1.69 1.83-2.93 4.37-3.68-.62-2.58-.46-4.79 1-5.63 1.47-.84 3.46.12 5.38 1.95 1.92-1.83 3.91-2.79 5.37-1.95M17.08 12c.34.75.64 1.5.89 2.26 2.1-.63 3.28-1.53 3.28-2.26 0-.73-1.18-1.63-3.28-2.26-.25.76-.55 1.51-.89 2.26M6.92 12c-.34-.75-.64-1.5-.89-2.26-2.1.63-3.28 1.53-3.28 2.26 0 .73 1.18 1.63 3.28 2.26.25-.76.55-1.51.89-2.26m9 2.26l-.3.51c.31-.05.61-.1.88-.16-.07-.28-.18-.57-.29-.86l-.29.51m-9.82-.26c.27.06.57.11.88.16l-.3-.51-.29.51c-.11.29-.22.58-.29.86m9.53-4.51c-.31.05-.61.1-.88.16.07.28.18.57.29.86l.29-.51.3-.51m-9.23.26c-.31.05-.61.1-.88.16.07.28.18.57.29.86l.29-.51.3-.51m4.14-1.75c-.54-.03-1.11-.03-1.71-.03"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">React</span>
+              <span class="copy-btn-hint">JSX Component</span>
+            </button>
+            <button class="copy-btn" data-format="vue">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2 3h3.5L12 15l6.5-12H22L12 21 2 3m4.5 0h3L12 7.58 14.5 3h3L12 13.08 6.5 3z"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">Vue</span>
+              <span class="copy-btn-hint">SFC Template</span>
+            </button>
+            <button class="copy-btn" data-format="angular">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 7l1.41 11.59L12 22l8.59-3.41L22 7L12 2m0 2.1l6.9 2.49-.38 2.91H9.5l-.3-2.16 7.6-.01.36-2.68L8.73 7.5 8.5 6.1 12 4.1M9.75 13h4.5l-.58 4.08L12 17.9l-1.67-.82L9.75 13z"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">Angular</span>
+              <span class="copy-btn-hint">Component</span>
+            </button>
+            <button class="copy-btn" data-format="html">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"/>
+                  <polyline points="8 6 2 12 8 18"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">HTML</span>
+              <span class="copy-btn-hint">Inline SVG</span>
+            </button>
+            <button class="copy-btn" data-format="datauri">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">Data URI</span>
+              <span class="copy-btn-hint">Base64 encoded</span>
+            </button>
+            <button class="copy-btn" data-format="css">
+              <span class="copy-btn-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 3h16l-1.5 15-6.5 2-6.5-2L4 3z"/>
+                  <path d="M8 8h8l-.5 5h-5"/>
+                </svg>
+              </span>
+              <span class="copy-btn-text">CSS</span>
+              <span class="copy-btn-hint">Background image</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="detail-footer">
+      <button class="detail-action secondary" id="detail-reset" title="Reset to original design">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span>Reset</span>
+        <kbd>R</kbd>
+      </button>
+      <button class="detail-action secondary" id="detail-favorite">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>Favorite</span>
+        <kbd>F</kbd>
+      </button>
+      <button class="detail-action secondary" id="detail-download">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Download</span>
+        <kbd>⌘D</kbd>
+      </button>
+      <button class="detail-action primary" id="detail-save-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="detail-save-icon">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        <span id="detail-save-text">Update</span>
+        <kbd>S</kbd>
+      </button>
+    </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div class="shortcuts-bar">
+      <span class="shortcut"><kbd>⌘C</kbd> Copy SVG</span>
+      <span class="shortcut"><kbd>⌘⇧C</kbd> Copy Name</span>
+      <span class="shortcut"><kbd>⌘R</kbd> React</span>
+      <span class="shortcut"><kbd>1-5</kbd> Size</span>
+      <span class="shortcut"><kbd>R</kbd> Reset</span>
+      <span class="shortcut"><kbd>Esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface IconData {
+    name: string;
+    content: string;
+    category: string;
+    isExisting?: boolean; // true if icon is already in library
+  }
+
+  let currentIcon: IconData | null = null;
+  let originalContent: string = ''; // Store original SVG for reset
+  let currentColor = 'currentColor';
+  let currentSize = 24;
+  let currentBg = 'dark';
+
+  const modal = document.getElementById('icon-detail-modal');
+  const backdrop = modal?.querySelector('.detail-modal-backdrop');
+  const closeBtn = modal?.querySelector('.detail-modal-close');
+
+  // Get clean SVG (remove inline styles for color/size)
+  function getCleanSvg(svgContent: string): string {
+    let svg = svgContent;
+    // Remove inline style attribute
+    svg = svg.replace(/\s*style="[^"]*"/g, '');
+    // Reset width/height to viewBox size or 24
+    const viewBoxMatch = svg.match(/viewBox=["'](\d+)\s+(\d+)\s+(\d+)\s+(\d+)["']/);
+    const defaultSize = viewBoxMatch ? viewBoxMatch[3] : '24';
+    svg = svg.replace(/width="[^"]*"/, `width="${defaultSize}"`);
+    svg = svg.replace(/height="[^"]*"/, `height="${defaultSize}"`);
+    return svg;
+  }
+
+  // Extract size from SVG content
+  function extractSvgSize(svgContent: string): number {
+    // Try to get width/height from attributes
+    const widthMatch = svgContent.match(/width=["'](\d+)/);
+    const heightMatch = svgContent.match(/height=["'](\d+)/);
+    
+    if (widthMatch) return parseInt(widthMatch[1], 10);
+    if (heightMatch) return parseInt(heightMatch[1], 10);
+    
+    // Try to get from style attribute
+    const styleWidthMatch = svgContent.match(/style=["'][^"']*width:\s*(\d+)/);
+    if (styleWidthMatch) return parseInt(styleWidthMatch[1], 10);
+    
+    // Try to get from viewBox
+    const viewBoxMatch = svgContent.match(/viewBox=["'][\d.\s]+[\d.\s]+[\d.\s]+([\d.]+)/);
+    if (viewBoxMatch) return Math.round(parseFloat(viewBoxMatch[1]));
+    
+    return 24; // Default
+  }
+
+  // Extract color from SVG content
+  function extractSvgColor(svgContent: string): string {
+    // Check for fill color in style attribute (inline styles we add)
+    const styleFillMatch = svgContent.match(/style=["'][^"']*fill:\s*([^;"\s]+)/);
+    if (styleFillMatch && styleFillMatch[1] !== 'none' && styleFillMatch[1] !== 'currentColor') {
+      return styleFillMatch[1];
+    }
+    
+    // Check for any fill attribute with hex color anywhere in SVG
+    const fillHexMatch = svgContent.match(/fill=["'](#[a-fA-F0-9]{3,6})["']/);
+    if (fillHexMatch) {
+      return fillHexMatch[1];
+    }
+    
+    // Check for any stroke attribute with hex color anywhere in SVG
+    const strokeHexMatch = svgContent.match(/stroke=["'](#[a-fA-F0-9]{3,6})["']/);
+    if (strokeHexMatch) {
+      return strokeHexMatch[1];
+    }
+    
+    // Check for fill attribute on svg element (non-hex)
+    const fillMatch = svgContent.match(/<svg[^>]*fill=["']([^"']+)/);
+    if (fillMatch && fillMatch[1] !== 'none' && fillMatch[1] !== 'currentColor') {
+      return fillMatch[1];
+    }
+    
+    // Check for stroke attribute on svg element (non-hex)
+    const strokeMatch = svgContent.match(/<svg[^>]*stroke=["']([^"']+)/);
+    if (strokeMatch && strokeMatch[1] !== 'none' && strokeMatch[1] !== 'currentColor') {
+      return strokeMatch[1];
+    }
+    
+    return 'currentColor'; // Default
+  }
+
+  // Get base SVG without custom styles (for reset)
+  function getBaseSvg(svgContent: string): string {
+    let svg = svgContent;
+    
+    // Remove inline style attribute that we added
+    svg = svg.replace(/\s*style="[^"]*"/g, '');
+    
+    // Get viewBox dimensions for default size
+    const viewBoxMatch = svg.match(/viewBox=["']\d+\s+\d+\s+(\d+)\s+(\d+)["']/);
+    const defaultSize = viewBoxMatch ? Math.max(parseInt(viewBoxMatch[1]), parseInt(viewBoxMatch[2])) : 24;
+    
+    // Reset width/height to viewBox size
+    svg = svg.replace(/\s*width="[^"]*"/, '');
+    svg = svg.replace(/\s*height="[^"]*"/, '');
+    svg = svg.replace(/<svg/, `<svg width="${defaultSize}" height="${defaultSize}"`);
+    
+    return svg;
+  }
+
+  // Open modal function
+  function openIconDetail(icon: IconData) {
+    currentIcon = icon;
+    // Store a clean version of the SVG for reset (without custom styles)
+    originalContent = getBaseSvg(icon.content);
+    if (!modal) return;
+
+    // Extract size and color from SVG content
+    currentSize = extractSvgSize(icon.content);
+    currentColor = extractSvgColor(icon.content);
+
+    // Set icon info
+    const nameEl = document.getElementById('detail-icon-name');
+    const categoryEl = document.getElementById('detail-icon-category');
+    if (nameEl) nameEl.textContent = icon.name;
+    if (categoryEl) categoryEl.textContent = icon.category;
+
+    // Update color picker UI
+    const colorInput = document.getElementById('detail-color-input') as HTMLInputElement;
+    const colorPreview = document.getElementById('detail-color-preview');
+    if (colorInput) colorInput.value = currentColor === 'currentColor' ? '#ffffff' : currentColor;
+    if (colorPreview) colorPreview.style.background = currentColor === 'currentColor' ? '#ffffff' : currentColor;
+    
+    // Update size buttons
+    document.querySelectorAll('.detail-size-btn').forEach(btn => {
+      const size = parseInt((btn as HTMLElement).dataset.size || '0', 10);
+      btn.classList.toggle('active', size === currentSize);
+    });
+    
+    // Update custom size input if size is not standard
+    const standardSizes = [16, 20, 24, 32, 48];
+    const customInput = document.getElementById('detail-custom-size') as HTMLInputElement;
+    if (customInput) {
+      if (!standardSizes.includes(currentSize)) {
+        customInput.value = currentSize.toString();
+        document.querySelectorAll('.detail-size-btn').forEach(btn => btn.classList.remove('active'));
+      } else {
+        customInput.value = '';
+      }
+    }
+
+    // Update save button based on whether icon exists
+    const saveBtn = document.getElementById('detail-save-btn');
+    const saveText = document.getElementById('detail-save-text');
+    const saveIcon = document.getElementById('detail-save-icon');
+    
+    if (saveBtn && saveText && saveIcon) {
+      if (icon.isExisting) {
+        saveText.textContent = 'Update';
+        saveIcon.innerHTML = '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>';
+      } else {
+        saveText.textContent = 'Add to Library';
+        saveIcon.innerHTML = '<path d="M12 5v14M5 12h14"/>';
+      }
+    }
+
+    // Update all previews
+    updateAllPreviews();
+
+    // Check if favorited
+    const favorites = JSON.parse(localStorage.getItem('favoriteIcons') || '[]');
+    const favBtn = document.getElementById('detail-favorite');
+    if (favBtn) {
+      favBtn.classList.toggle('active', favorites.includes(icon.name));
+    }
+
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Expose globally for use from other pages
+  (window as any).openIconDetail = openIconDetail;
+
+  function closeIconDetail() {
+    if (modal) {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+  }
+
+  function updateAllPreviews() {
+    if (!currentIcon) return;
+
+    // Small previews always show fixed sizes for comparison
+    const sizes = [16, 24, 32, 48];
+    sizes.forEach(size => {
+      const el = document.getElementById(`preview-${size}`);
+      if (el) {
+        el.innerHTML = getStyledSvg(currentIcon!.content, size, currentColor);
+      }
+    });
+
+    // Main preview uses the selected size directly
+    const mainPreview = document.getElementById('main-preview-icon');
+    if (mainPreview) {
+      mainPreview.innerHTML = getStyledSvg(currentIcon.content, currentSize, currentColor);
+    }
+  }
+
+  function getStyledSvg(content: string, size: number, color: string): string {
+    let svg = content;
+    
+    // Remove existing width/height attributes
+    svg = svg.replace(/\s*width="[^"]*"/g, '');
+    svg = svg.replace(/\s*height="[^"]*"/g, '');
+    
+    // Remove existing inline styles
+    svg = svg.replace(/\s*style="[^"]*"/g, '');
+    
+    // Add new width/height at the start of <svg
+    svg = svg.replace('<svg', `<svg width="${size}" height="${size}"`);
+    
+    // Add inline style for size
+    svg = svg.replace('<svg', `<svg style="width:${size}px;height:${size}px"`);
+
+    // Apply color - handle both directions
+    if (color === 'currentColor') {
+      // Reset any custom colors back to currentColor
+      svg = svg.replace(/fill="#[a-fA-F0-9]{3,6}"/g, 'fill="currentColor"');
+      svg = svg.replace(/stroke="#[a-fA-F0-9]{3,6}"/g, 'stroke="currentColor"');
+      svg = svg.replace(/fill="rgb[^"]*"/g, 'fill="currentColor"');
+      svg = svg.replace(/stroke="rgb[^"]*"/g, 'stroke="currentColor"');
+    } else {
+      // Apply custom color
+      svg = svg.replace(/fill="currentColor"/g, `fill="${color}"`);
+      svg = svg.replace(/stroke="currentColor"/g, `stroke="${color}"`);
+      // Also replace any existing custom colors
+      svg = svg.replace(/fill="#[a-fA-F0-9]{3,6}"/g, `fill="${color}"`);
+      svg = svg.replace(/stroke="#[a-fA-F0-9]{3,6}"/g, `stroke="${color}"`);
+    }
+
+    return svg;
+  }
+
+  function generateSnippet(format: string): string {
+    if (!currentIcon) return '';
+
+    const { name, content } = currentIcon;
+    const size = currentSize;
+    const color = currentColor;
+    const styledSvg = getStyledSvg(content, size, color);
+    const safeName = name.replace(/[^a-zA-Z0-9]/g, '');
+    const componentName = safeName.charAt(0).toUpperCase() + safeName.slice(1) + 'Icon';
+    const colorVal = color === 'currentColor' ? 'currentColor' : color;
+
+    switch (format) {
+      case 'svg':
+        return styledSvg;
+      
+      case 'name':
+        return name;
+      
+      case 'react':
+        const reactSvg = styledSvg.replace(/"/g, "'").replace(/\x3Csvg/, '\x3Csvg {...props}');
+        return 'import React from \'react\';\n\nexport const ' + componentName + 
+          ' = ({ size = ' + size + ', color = "' + colorVal + '", ...props }) => (\n  ' + 
+          reactSvg + '\n);';
+      
+      case 'vue':
+        const vueSvg = styledSvg.replace(/\x3Csvg/, '\x3Csvg :width="size" :height="size" :style="{ color }"');
+        return '\x3Ctemplate>\n  ' + vueSvg + '\n\x3C/template>\n\n' +
+          '\x3Cscript setup>\ndefineProps({\n  size: { type: Number, default: ' + size + 
+          ' },\n  color: { type: String, default: \'' + color + '\' }\n});\n\x3C/script>';
+      
+      case 'angular':
+        const angularSelector = 'app-' + name.replace(/:/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        const angularSvg = styledSvg.replace(/\x3Csvg/, '\x3Csvg [attr.width]="size" [attr.height]="size"');
+        return 'import { Component, Input } from \'@angular/core\';\n\n@Component({\n  selector: \'' + 
+          angularSelector + '\',\n  standalone: true,\n  template: `' + angularSvg + '`\n})\nexport class ' + 
+          componentName + 'Component {\n  @Input() size = ' + size + ';\n  @Input() color = \'' + color + '\';\n}';
+      
+      case 'html':
+        return '\x3C!-- ' + name + ' -->\n' + styledSvg;
+      
+      case 'datauri':
+        const encoded = btoa(styledSvg);
+        return 'data:image/svg+xml;base64,' + encoded;
+      
+      case 'css':
+        const cssName = name.replace(/:/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        const cssEncoded = encodeURIComponent(styledSvg);
+        return '.icon-' + cssName + ' {\n  background-image: url("data:image/svg+xml,' + cssEncoded + 
+          '");\n  background-size: contain;\n  background-repeat: no-repeat;\n  width: ' + 
+          size + 'px;\n  height: ' + size + 'px;\n  display: inline-block;\n}';
+      
+      default:
+        return content;
+    }
+  }
+
+  // Event listeners
+  backdrop?.addEventListener('click', closeIconDetail);
+  closeBtn?.addEventListener('click', closeIconDetail);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Only handle if modal is open
+    if (!modal || modal.hidden) return;
+
+    // Don't handle if typing in an input
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      if (e.key === 'Escape') closeIconDetail();
+      return;
+    }
+
+    // Escape - close modal
+    if (e.key === 'Escape') {
+      closeIconDetail();
+      return;
+    }
+
+    // Ctrl/Cmd + C - Copy SVG
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      copyFormat('svg');
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + C - Copy Name
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+      e.preventDefault();
+      copyFormat('name');
+      return;
+    }
+
+    // Ctrl/Cmd + R - Copy React
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+      e.preventDefault();
+      copyFormat('react');
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + V - Copy Vue
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+      e.preventDefault();
+      copyFormat('vue');
+      return;
+    }
+
+    // Ctrl/Cmd + D - Download
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      document.getElementById('detail-download')?.click();
+      return;
+    }
+
+    // F - Toggle favorite
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      document.getElementById('detail-favorite')?.click();
+      return;
+    }
+
+    // R - Reset to original
+    if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault();
+      document.getElementById('detail-reset')?.click();
+      return;
+    }
+
+    // S - Save/Update
+    if (e.key === 's' || e.key === 'S') {
+      e.preventDefault();
+      document.getElementById('detail-save-btn')?.click();
+      return;
+    }
+
+    // Number keys 1-5 for sizes
+    const sizeKeys = ['1', '2', '3', '4', '5'];
+    if (sizeKeys.includes(e.key)) {
+      const sizes = [16, 20, 24, 32, 48];
+      const idx = parseInt(e.key) - 1;
+      if (sizes[idx]) {
+        currentSize = sizes[idx];
+        document.querySelectorAll('.size-btn').forEach((b, i) => {
+          b.classList.toggle('active', i === idx);
+        });
+      }
+    }
+  });
+
+  async function copyFormat(format: string) {
+    const snippet = generateSnippet(format);
+    try {
+      await navigator.clipboard.writeText(snippet);
+      const btn = document.querySelector(`.copy-btn[data-format="${format}"]`);
+      if (btn) {
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 2000);
+      }
+      const event = new CustomEvent('show-toast', { 
+        detail: { message: `Copied ${format.toUpperCase()} to clipboard!` }
+      });
+      window.dispatchEvent(event);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }
+
+  // Color picker
+  const colorInput = document.getElementById('icon-color') as HTMLInputElement;
+  const colorText = document.getElementById('icon-color-text') as HTMLInputElement;
+  
+  colorInput?.addEventListener('input', (e) => {
+    currentColor = (e.target as HTMLInputElement).value;
+    if (colorText) colorText.value = currentColor;
+    updateColorPresetActive();
+    updateAllPreviews();
+  });
+
+  colorText?.addEventListener('change', (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    if (/^#[0-9A-Fa-f]{6}$/.test(val) || val === 'currentColor') {
+      currentColor = val;
+      if (colorInput && val !== 'currentColor') colorInput.value = val;
+      updateColorPresetActive();
+      updateAllPreviews();
+    }
+  });
+
+  // Color presets
+  document.querySelectorAll('.color-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const color = (btn as HTMLElement).dataset.color!;
+      currentColor = color;
+      if (colorInput && color !== 'currentColor') colorInput.value = color;
+      if (colorText) colorText.value = color;
+      updateColorPresetActive();
+      updateAllPreviews();
+    });
+  });
+
+  function updateColorPresetActive() {
+    document.querySelectorAll('.color-preset').forEach(btn => {
+      btn.classList.toggle('active', (btn as HTMLElement).dataset.color === currentColor);
+    });
+  }
+
+  // Size selector
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSize = parseInt((btn as HTMLElement).dataset.size!);
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const customInput = document.getElementById('custom-size') as HTMLInputElement;
+      if (customInput) customInput.value = '';
+      updateAllPreviews();
+    });
+  });
+
+  const customSizeInput = document.getElementById('custom-size') as HTMLInputElement;
+  customSizeInput?.addEventListener('change', (e) => {
+    const val = parseInt((e.target as HTMLInputElement).value);
+    const isValidSize = val > 7 && val < 257;
+    if (isValidSize) {
+      currentSize = val;
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      updateAllPreviews();
+    }
+  });
+
+  // Background toggle
+  document.querySelectorAll('.bg-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentBg = (btn as HTMLElement).dataset.bg!;
+      document.querySelectorAll('.bg-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const mainPreview = document.getElementById('main-preview');
+      if (mainPreview) {
+        mainPreview.classList.remove('bg-dark', 'bg-light', 'bg-checker');
+        mainPreview.classList.add(`bg-${currentBg}`);
+      }
+      
+      document.querySelectorAll('.size-preview').forEach(el => {
+        el.classList.remove('bg-dark', 'bg-light', 'bg-checker');
+        el.classList.add(`bg-${currentBg}`);
+      });
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const format = (btn as HTMLElement).dataset.format!;
+      const snippet = generateSnippet(format);
+      
+      try {
+        await navigator.clipboard.writeText(snippet);
+        
+        // Visual feedback
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 2000);
+        
+        // Show toast
+        const event = new CustomEvent('show-toast', { 
+          detail: { message: `Copied ${format.toUpperCase()} to clipboard!` }
+        });
+        window.dispatchEvent(event);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    });
+  });
+
+  // Favorite button
+  document.getElementById('detail-favorite')?.addEventListener('click', () => {
+    if (!currentIcon) return;
+    
+    const favorites = JSON.parse(localStorage.getItem('favoriteIcons') || '[]');
+    const idx = favorites.indexOf(currentIcon.name);
+    
+    if (idx === -1) {
+      favorites.push(currentIcon.name);
+    } else {
+      favorites.splice(idx, 1);
+    }
+    
+    localStorage.setItem('favoriteIcons', JSON.stringify(favorites));
+    
+    const btn = document.getElementById('detail-favorite');
+    if (btn) btn.classList.toggle('active', idx === -1);
+    
+    // Dispatch event for UI update
+    window.dispatchEvent(new CustomEvent('favorites-changed'));
+  });
+
+  // Reset button - restore to original design
+  document.getElementById('detail-reset')?.addEventListener('click', () => {
+    if (!currentIcon || !originalContent) return;
+    
+    // Restore original content
+    currentIcon.content = originalContent;
+    
+    // Reset to defaults
+    currentColor = 'currentColor';
+    currentSize = 24;
+    
+    // Reset color picker UI
+    const colorInput = document.getElementById('detail-color-input') as HTMLInputElement;
+    const colorPreview = document.getElementById('detail-color-preview');
+    if (colorInput) colorInput.value = '#ffffff';
+    if (colorPreview) colorPreview.style.background = '#ffffff';
+    
+    // Reset size buttons
+    document.querySelectorAll('.detail-size-btn').forEach(btn => {
+      const size = parseInt((btn as HTMLElement).dataset.size || '0', 10);
+      btn.classList.toggle('active', size === 24);
+    });
+    
+    // Clear custom size input
+    const customInput = document.getElementById('detail-custom-size') as HTMLInputElement;
+    if (customInput) customInput.value = '';
+    
+    // Update previews with original content
+    updateAllPreviews();
+    
+    if (typeof (window as any).showToast === 'function') {
+      (window as any).showToast('Reset to original design', 'info');
+    }
+  });
+
+  // Download button
+  document.getElementById('detail-download')?.addEventListener('click', () => {
+    if (!currentIcon) return;
+    
+    const svg = getStyledSvg(currentIcon.content, currentSize, currentColor);
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentIcon.name.replace(/:/g, '-')}.svg`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+  });
+
+  // Save/Update icon
+  document.getElementById('detail-save-btn')?.addEventListener('click', async () => {
+    if (!currentIcon) return;
+    
+    try {
+      // Get styled SVG with current color and size
+      const styledSvg = getStyledSvg(currentIcon.content, currentSize, currentColor);
+      
+      if (currentIcon.isExisting) {
+        // Update existing icon - save modifications
+        const res = await fetch(`/api/icons/${currentIcon.name}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            content: styledSvg,
+            color: currentColor,
+            size: currentSize
+          })
+        });
+        
+        if (res.ok) {
+          if (typeof (window as any).showToast === 'function') {
+            (window as any).showToast(`Updated "${currentIcon.name}"!`, 'success');
+          }
+          
+          // Refresh the icon in the grid (try both class names for different pages)
+          const card = document.querySelector(`.im-icon-card[data-name="${currentIcon.name}"]`) || 
+                       document.querySelector(`.icon-card[data-name="${currentIcon.name}"]`);
+          if (card) {
+            const iconPreview = card.querySelector('.im-icon-preview') || card.querySelector('.icon-preview');
+            if (iconPreview) {
+              iconPreview.innerHTML = styledSvg;
+            }
+          }
+          
+          closeIconDetail();
+        } else {
+          const data = await res.json();
+          console.error('Failed to update icon:', data.error);
+          if (typeof (window as any).showToast === 'function') {
+            (window as any).showToast('Failed to update icon', 'error');
+          }
+        }
+      } else {
+        // Add new icon to library (icons.json)
+        const styledSvg = getStyledSvg(currentIcon.content, currentSize, currentColor);
+        
+        const res = await fetch('/api/icons/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: currentIcon.name, 
+            content: styledSvg,
+            category: currentIcon.category
+          })
+        });
+        
+        if (res.ok) {
+          // Mark card as existing if on search page
+          const card = document.querySelector(`.icon-card[data-name="${currentIcon.name}"]`);
+          if (card) {
+            card.classList.add('existing');
+            const badge = document.createElement('div');
+            badge.className = 'icon-badge';
+            badge.textContent = '✓';
+            if (!card.querySelector('.icon-badge')) {
+              card.appendChild(badge);
+            }
+            const checkbox = card.querySelector('input[type="checkbox"]') as HTMLInputElement;
+            if (checkbox) {
+              checkbox.checked = false;
+              checkbox.disabled = true;
+            }
+          }
+          
+          if (typeof (window as any).showToast === 'function') {
+            (window as any).showToast(`Added "${currentIcon.name}" to library!`, 'success');
+          }
+          
+          closeIconDetail();
+        } else {
+          const data = await res.json();
+          console.error('Failed to add to library:', data.error);
+          if (typeof (window as any).showToast === 'function') {
+            (window as any).showToast(data.error || 'Failed to add to library', 'error');
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to save icon:', err);
+      if (typeof (window as any).showToast === 'function') {
+        (window as any).showToast('Failed to save icon', 'error');
+      }
+    }
+  });
+
+  // Expose function globally
+  (window as any).openIconDetail = openIconDetail;
+</script>
+
+<style>
+  .detail-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .detail-modal[hidden] {
+    display: none;
+  }
+
+  .detail-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+  }
+
+  .detail-modal-content {
+    position: relative;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .detail-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #3f3f46;
+    color: #a1a1aa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+    z-index: 10;
+  }
+
+  .detail-modal-close:hover {
+    background: #27272a;
+    color: #f4f4f5;
+    border-color: #52525b;
+  }
+
+  .detail-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #27272a;
+  }
+
+  .detail-icon-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .detail-icon-category {
+    font-size: 0.75rem;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .detail-body {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Preview Section */
+  .detail-preview-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .size-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .size-preview {
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .size-preview.bg-light {
+    background: #f4f4f5;
+  }
+
+  .size-preview.bg-checker {
+    background: repeating-conic-gradient(#27272a 0% 25%, #18181b 0% 50%) 50% / 12px 12px;
+  }
+
+  .size-preview-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    color: #f4f4f5;
+  }
+
+  .size-preview.bg-light .size-preview-icon {
+    color: #18181b;
+  }
+
+  .size-label {
+    font-size: 0.625rem;
+    color: #71717a;
+    text-transform: uppercase;
+  }
+
+  .background-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+  }
+
+  .toggle-label {
+    font-size: 0.75rem;
+    color: #a1a1aa;
+  }
+
+  .toggle-options {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  .bg-option {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 2px;
+    transition: 150ms ease;
+  }
+
+  .bg-option:hover {
+    border-color: #3f3f46;
+  }
+
+  .bg-option.active {
+    border-color: #6366f1;
+  }
+
+  .bg-swatch {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .bg-swatch.dark {
+    background: #09090b;
+    border: 1px solid #27272a;
+  }
+
+  .bg-swatch.light {
+    background: #f4f4f5;
+    border: 1px solid #d4d4d8;
+  }
+
+  .bg-swatch.checker {
+    background: repeating-conic-gradient(#71717a 0% 25%, #27272a 0% 50%) 50% / 6px 6px;
+  }
+
+  .main-preview {
+    background: #09090b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f4f4f5;
+  }
+
+  .main-preview.bg-light {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+
+  .main-preview.bg-checker {
+    background: repeating-conic-gradient(#27272a 0% 25%, #18181b 0% 50%) 50% / 20px 20px;
+  }
+
+  .main-preview-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .main-preview-icon :global(svg) {
+    flex-shrink: 0;
+  }
+
+  /* Controls Section */
+  .detail-controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .control-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #a1a1aa;
+  }
+
+  .control-label svg {
+    color: #71717a;
+  }
+
+  .color-picker-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .color-input {
+    width: 44px;
+    height: 36px;
+    padding: 2px;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .color-input::-webkit-color-swatch {
+    border-radius: 4px;
+    border: none;
+  }
+
+  .color-text-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #f4f4f5;
+    font-family: monospace;
+    font-size: 0.875rem;
+  }
+
+  .color-text-input:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .color-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .color-preset {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 150ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #71717a;
+  }
+
+  .color-preset:hover {
+    transform: scale(1.1);
+  }
+
+  .color-preset.active {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+  }
+
+  .color-preset[data-color="#000000"] {
+    border: 2px solid #3f3f46;
+  }
+
+  .color-preset[data-color="currentColor"] {
+    background: #27272a;
+    border: 2px solid #3f3f46;
+  }
+
+  .size-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .size-btn {
+    min-width: 40px;
+    height: 32px;
+    padding: 0 0.75rem;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 6px;
+    color: #a1a1aa;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .size-btn:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+
+  .size-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+  }
+
+  .custom-size-input {
+    width: 64px;
+    height: 32px;
+    padding: 0 0.5rem;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 6px;
+    color: #f4f4f5;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .custom-size-input:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .copy-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    color: #a1a1aa;
+    cursor: pointer;
+    transition: 150ms ease;
+    text-align: left;
+  }
+
+  .copy-btn:hover {
+    background: #27272a;
+    border-color: #52525b;
+    color: #f4f4f5;
+  }
+
+  .copy-btn.copied {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+    color: #22c55e;
+  }
+
+  .copy-btn-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .copy-btn-text {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .copy-btn-hint {
+    font-size: 0.625rem;
+    color: #52525b;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover .copy-btn-hint {
+    color: #71717a;
+  }
+
+  /* Footer */
+  .detail-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid #27272a;
+  }
+
+  .detail-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 150ms ease;
+  }
+
+  .detail-action.secondary {
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    color: #a1a1aa;
+  }
+
+  .detail-action.secondary:hover {
+    background: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .detail-action.secondary.active {
+    background: rgba(250, 204, 21, 0.1);
+    border-color: #ca8a04;
+    color: #facc15;
+  }
+
+  .detail-action.secondary.active svg {
+    fill: currentColor;
+  }
+
+  .detail-action.primary {
+    background: #6366f1;
+    border: 1px solid #6366f1;
+    color: #fff;
+  }
+
+  .detail-action.primary:hover {
+    background: #4f46e5;
+    border-color: #4f46e5;
+  }
+
+  .detail-action kbd {
+    font-size: 0.625rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    margin-left: auto;
+    font-family: system-ui;
+  }
+
+  .shortcuts-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: #09090b;
+    border-top: 1px solid #27272a;
+    justify-content: center;
+  }
+
+  .shortcut {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    color: #52525b;
+  }
+
+  .shortcut kbd {
+    font-size: 0.625rem;
+    background: #27272a;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    color: #a1a1aa;
+    font-family: system-ui;
+    border: 1px solid #3f3f46;
+  }
+
+  @media (max-width: 640px) {
+    .copy-options {
+      grid-template-columns: 1fr;
+    }
+
+    .detail-footer {
+      flex-direction: column;
+    }
+
+    .shortcuts-bar {
+      display: none;
+    }
+
+    .detail-action kbd {
+      display: none;
+    }
+  }
+</style>

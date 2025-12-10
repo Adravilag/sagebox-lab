@@ -5,8 +5,11 @@ import Header from '../components/Header.astro';
 import IconGrid from '../components/IconGrid.astro';
 import AddModal from '../components/AddModal.astro';
 import ImportModal from '../components/ImportModal.astro';
+import RenameModal from '../components/RenameModal.astro';
 import SelectionBar from '../components/SelectionBar.astro';
 import Toast from '../components/Toast.astro';
+import ConfigModal from '../components/ConfigModal.astro';
+import IconDetailModal from '../components/IconDetailModal.astro';
 import { readIcons, categorizeIcons, ICON_SETS, readProjectIcons, isAnimatedSVG } from '../lib/icons';
 import { getLocale, createT, type Locale } from '../lib/i18n';
 
@@ -22,6 +25,8 @@ const clientTranslations = {
 // Get current params from URL
 const category = Astro.url.searchParams.get('category') || 'all';
 const search = Astro.url.searchParams.get('search') || '';
+const addIconQuery = Astro.url.searchParams.get('addIcon') || '';
+const onlineSearch = Astro.url.searchParams.get('online') || ''; // Online search query from VS Code
 const viewMode = (Astro.url.searchParams.get('view') || 'grid') as 'grid' | 'list';
 const sortBy = (Astro.url.searchParams.get('sort') || 'name') as 'name' | 'name-desc' | 'category' | 'recent';
 
@@ -124,21 +129,28 @@ switch (sortBy) {
           category: icon.name.includes(':') ? icon.name.split(':')[0] : 'custom'
         }))}
         viewMode={viewMode}
+        sortBy={sortBy}
+        totalCount={allIcons.length}
         locale={locale}
       />
     </main>
 
     <AddModal locale={locale} />
     <ImportModal locale={locale} />
+    <RenameModal locale={locale} />
     <SelectionBar locale={locale} />
-    <Toast />
+    <ConfigModal locale={locale} />
+    <IconDetailModal locale={locale} />
+<Toast />
   </div>
 
   <!-- Pass project icons and locale to client -->
-  <script define:vars={{ projectIcons: [...projectIconNames], currentLocale: locale, translations: clientTranslations }}>
+  <script define:vars={{ projectIcons: [...projectIconNames], libraryIcons: allIcons.map(i => i.name), currentLocale: locale, translations: clientTranslations, initialOnlineSearch: onlineSearch }}>
     window.__PROJECT_ICONS__ = new Set(projectIcons);
+    window.__LIBRARY_ICONS__ = new Set(libraryIcons);
     window.__LOCALE__ = currentLocale;
     window.__T__ = translations;
+    window.__INITIAL_ONLINE_SEARCH__ = initialOnlineSearch;
 
     // Persist locale in cookie and localStorage
     const LANG_KEY = 'saged-icon-lang';
@@ -181,11 +193,206 @@ switch (sortBy) {
       margin-left: 0;
     }
   }
+
+  /* Online search states */
+  .im-online-hint,
+  .im-online-loading,
+  .im-online-empty,
+  .im-online-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    color: #71717a;
+    gap: 1rem;
+    grid-column: 1 / -1;
+  }
+
+  .im-online-hint h3,
+  .im-online-empty h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #a1a1aa;
+    margin: 0;
+  }
+
+  .im-online-hint p,
+  .im-online-loading p,
+  .im-online-empty p,
+  .im-online-error p {
+    font-size: 0.9375rem;
+    margin: 0;
+    color: #71717a;
+  }
+
+  .im-online-hint svg,
+  .im-online-empty svg,
+  .im-online-error svg {
+    opacity: 0.5;
+  }
+
+  .im-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #27272a;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Online icon cards - need full styles since they're dynamically created */
+  .im-icon-card.online-icon {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    padding: 1rem;
+    position: relative;
+    transition: 200ms ease;
+    cursor: pointer;
+  }
+
+  .im-icon-card.online-icon:hover {
+    border-color: #3f3f46;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .im-icon-card.online-icon.selected {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  .im-icon-card.online-icon .im-icon-preview {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    color: #f4f4f5;
+  }
+
+  .im-icon-card.online-icon .im-icon-preview svg {
+    width: 32px;
+    height: 32px;
+    color: inherit;
+    fill: currentColor;
+  }
+
+  .im-icon-card.online-icon .im-icon-info {
+    text-align: center;
+  }
+
+  .im-icon-card.online-icon .im-icon-name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #f4f4f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+  }
+
+  .im-icon-card.online-icon .im-icon-category {
+    font-size: 0.6875rem;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .im-icon-card.online-icon .im-icon-actions {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .im-icon-card.online-icon:hover .im-icon-actions {
+    opacity: 1;
+  }
+
+  .im-icon-card.online-icon .im-icon-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: #27272a;
+    color: #a1a1aa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 150ms ease;
+  }
+
+  .im-icon-card.online-icon .im-icon-action:hover {
+    background: #3f3f46;
+    color: #f4f4f5;
+  }
+
+  .im-icon-card.online-icon .im-icon-action.edit:hover {
+    background: rgba(99, 102, 241, 0.2);
+    color: #6366f1;
+  }
+
+  .im-icon-card.online-icon .add-to-library:hover {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+  }
+
+  /* Icons already in library - green border */
+  .im-icon-card.online-icon.in-library {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.05);
+  }
+
+  .im-icon-card.online-icon.in-library.selected {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  .im-icon-card.online-icon .im-icon-in-library {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
 
 <script>
   // Client-side functionality
   document.addEventListener('DOMContentLoaded', () => {
+    // Check for addIcon URL parameter to open import modal with search
+
+    // ============================================
+  // VS CODE INTEGRATION - Handle search query from VS Code
+  // ============================================
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+    
+    if (message.type === 'vscode-config' && message.config) {
+      const config = message.config;
+      
+
+    }
+  });
+
     const searchInput = document.getElementById('im-search-input') as HTMLInputElement;
     const addBtn = document.getElementById('im-add-btn');
     const importBtn = document.getElementById('im-import-btn');
@@ -204,6 +411,451 @@ switch (sortBy) {
 
     let selectedIcons: Set<string> = new Set();
     const selectionInfo = document.getElementById('im-selection-info');
+
+    // ============================================
+    // SEARCH MODE TOGGLE (Local/Online)
+    // ============================================
+    const searchModeButtons = document.querySelectorAll('.im-mode-btn');
+    let currentSearchMode: 'local' | 'online' = 'local';
+    let originalGridContent: string | null = null;
+    let onlineSearchTimeout: ReturnType<typeof setTimeout>;
+
+    // Store original grid content for restoration
+    if (iconGrid) {
+      originalGridContent = iconGrid.innerHTML;
+    }
+
+    async function searchOnline(query: string) {
+      if (!iconGrid) return;
+      
+      if (query.length < 2) {
+        iconGrid.innerHTML = `
+          <div class="im-online-hint">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+            <p>Type at least 2 characters to search online</p>
+          </div>
+        `;
+        updateVisibleCount(0);
+        return;
+      }
+
+      // Show loading state
+      iconGrid.innerHTML = `
+        <div class="im-online-loading">
+          <div class="im-spinner"></div>
+          <p>Searching Iconify...</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=100`);
+        const data = await res.json();
+
+        if (!data.icons || data.icons.length === 0) {
+          iconGrid.innerHTML = `
+            <div class="im-online-empty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M16 16s-1.5-2-4-2-4 2-4 2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+              <p>No icons found for "${query}"</p>
+            </div>
+          `;
+          updateVisibleCount(0);
+          return;
+        }
+
+        // Fetch SVG content for each icon
+        const iconsWithContent = await Promise.all(
+          data.icons.slice(0, 60).map(async (iconName: string) => {
+            try {
+              const [prefix, name] = iconName.split(':');
+              const svgRes = await fetch(`https://api.iconify.design/${prefix}/${name}.svg`);
+              if (svgRes.ok) {
+                const content = await svgRes.text();
+                return { name: iconName, content, category: prefix };
+              }
+            } catch {}
+            return null;
+          })
+        );
+
+        const validIcons = iconsWithContent.filter(Boolean);
+
+        // Render icons in the grid
+        const viewMode = iconGrid.dataset.view || 'grid';
+        iconGrid.className = `im-icon-grid im-view-${viewMode}`;
+        const librarySet = (window as any).__LIBRARY_ICONS__ || new Set();
+        iconGrid.innerHTML = validIcons.map((icon: any) => {
+          const inLibrary = librarySet.has(icon.name);
+          return `
+          <div class="im-icon-card online-icon${inLibrary ? ' in-library' : ''}" data-name="${icon.name}" data-category="${icon.category}" data-content="${escapeHtml(icon.content)}"${inLibrary ? ' data-in-library="true"' : ''}>
+            <div class="im-icon-preview">${icon.content}</div>
+            <div class="im-icon-info">
+              <div class="im-icon-name" title="${icon.name}">${icon.name}</div>
+              <div class="im-icon-category">${icon.category}</div>
+            </div>
+            <div class="im-icon-actions">
+              <button class="im-icon-action edit" title="View Details" data-action="edit">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </button>
+              ${!inLibrary ? `<button class="im-icon-action add-to-library" title="Add to Library" data-action="add">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>` : `<span class="im-icon-in-library" title="Already in Library">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>`}
+            </div>
+          </div>
+        `}).join('');
+
+        updateVisibleCount(validIcons.length);
+        
+        // Attach event listeners to new cards
+        attachOnlineCardListeners();
+
+      } catch (error) {
+        console.error('Online search error:', error);
+        iconGrid.innerHTML = `
+          <div class="im-online-error">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            <p>Error searching online. Please try again.</p>
+          </div>
+        `;
+      }
+    }
+
+    function escapeHtml(str: string): string {
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function updateVisibleCount(count: number) {
+      const countEl = document.getElementById('im-visible-count');
+      if (countEl) countEl.textContent = count.toString();
+    }
+
+    function attachOnlineCardListeners() {
+      document.querySelectorAll('.im-icon-card.online-icon').forEach(card => {
+        const cardEl = card as HTMLElement;
+        const name = cardEl.dataset.name || '';
+        const content = cardEl.dataset.content || '';
+        const category = cardEl.dataset.category || '';
+
+        // Decode content helper
+        const decodeContent = () => content
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, '&');
+
+        // Click on card to toggle selection
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = e.target as HTMLElement;
+          
+          // If clicking on actions, let the action handlers deal with it
+          if (target.closest('.im-icon-actions')) return;
+          
+          // Toggle selection
+          cardEl.classList.toggle('selected');
+          
+          if (cardEl.classList.contains('selected')) {
+            selectedIcons.add(name);
+          } else {
+            selectedIcons.delete(name);
+          }
+          
+          updateSelectionUI();
+        });
+
+        // Edit button - open detail modal
+        const editBtn = card.querySelector('[data-action="edit"]');
+        editBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          
+          // Hide preview modal if visible
+          const previewModal = document.getElementById('im-preview-modal');
+          if (previewModal) previewModal.classList.remove('visible');
+          
+          if (typeof window.openIconDetail === 'function') {
+            window.openIconDetail({
+              name,
+              content: decodeContent(),
+              category,
+              isExisting: false
+            });
+          }
+        });
+
+        // Add to library button - add directly to library
+        const addBtn = card.querySelector('[data-action="add"]');
+        addBtn?.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          
+          // Show loading on the button
+          const btnEl = addBtn as HTMLElement;
+          btnEl.style.opacity = '0.5';
+          btnEl.style.pointerEvents = 'none';
+          
+          try {
+            const res = await fetch('/api/icons/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, content: decodeContent(), category })
+            });
+
+            if (res.ok) {
+              // Mark as in library
+              cardEl.classList.add('in-library');
+              cardEl.dataset.inLibrary = 'true';
+              
+              // Update library icons set
+              (window as any).__LIBRARY_ICONS__?.add(name);
+              
+              // Update sidebar counts
+              updateSidebarCounts([{ name, category }]);
+              
+              // Replace the add button with a check mark
+              btnEl.outerHTML = `<span class="im-icon-in-library" title="Already in Library">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>`;
+              
+              // Show success toast
+              if (typeof window.showToast === 'function') {
+                window.showToast(`${name} added to library`, 'success');
+              }
+            } else {
+              const data = await res.json().catch(() => ({}));
+              if (typeof window.showToast === 'function') {
+                window.showToast(data.error || 'Failed to add icon', 'error');
+              }
+              btnEl.style.opacity = '1';
+              btnEl.style.pointerEvents = 'auto';
+            }
+          } catch (err) {
+            if (typeof window.showToast === 'function') {
+              window.showToast('Error adding icon to library', 'error');
+            }
+            btnEl.style.opacity = '1';
+            btnEl.style.pointerEvents = 'auto';
+          }
+        });
+      });
+    }
+
+    // Helper function to update sidebar counts when icons are added
+    function updateSidebarCounts(addedIcons: { name: string; category: string }[]) {
+      const t = (window as any).__T__ || { icons: 'icons' };
+      
+      // Update total count (All Icons)
+      const allCountEl = document.getElementById('im-all-count');
+      if (allCountEl) {
+        const currentText = allCountEl.textContent || '0';
+        const currentCount = parseInt(currentText) || 0;
+        allCountEl.textContent = `${currentCount + addedIcons.length} ${t.icons || 'icons'}`;
+      }
+      
+      // Update per-category counts
+      const categoryUpdates: Record<string, number> = {};
+      for (const icon of addedIcons) {
+        const prefix = icon.category || icon.name.split(':')[0];
+        categoryUpdates[prefix] = (categoryUpdates[prefix] || 0) + 1;
+      }
+      
+      for (const [prefix, count] of Object.entries(categoryUpdates)) {
+        // Find the category item with data-category
+        const categoryItem = document.querySelector(`[data-category="${prefix}"]`);
+        if (categoryItem) {
+          const countEl = categoryItem.querySelector('.im-cat-count');
+          if (countEl) {
+            const currentCount = parseInt(countEl.textContent || '0') || 0;
+            countEl.textContent = String(currentCount + count);
+          }
+        }
+      }
+      
+      // Update total in footer
+      const totalEl = document.querySelector('.im-storage-info span:last-child');
+      if (totalEl) {
+        const currentText = totalEl.textContent || '0';
+        const currentCount = parseInt(currentText) || 0;
+        totalEl.textContent = `${currentCount + addedIcons.length} icons`;
+      }
+    }
+
+    function updateSelectionUI() {
+      const count = selectedIcons.size;
+      
+      // Update selection info
+      if (selectionInfo) {
+        selectionInfo.textContent = `${count} ${(window as any).__T__?.selected || 'selected'}`;
+        selectionInfo.classList.toggle('visible', count > 0);
+      }
+      
+      // Update selection bar
+      if (selectionBar) {
+        selectionBar.classList.toggle('visible', count > 0);
+      }
+      if (selectionCount) {
+        selectionCount.textContent = count.toString();
+      }
+    }
+
+    function restoreLocalGrid() {
+      if (iconGrid && originalGridContent) {
+        iconGrid.innerHTML = originalGridContent;
+        // Re-attach local card listeners would be needed here
+        // For simplicity, reload the page when switching back to local
+      }
+    }
+
+    searchModeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = (btn as HTMLElement).dataset.mode as 'local' | 'online';
+        if (mode === currentSearchMode) return;
+
+        currentSearchMode = mode;
+        
+        // Set data attribute for other handlers to check
+        document.body.dataset.searchMode = mode;
+        
+        // Update button states
+        searchModeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update placeholder and clear search
+        if (searchInput) {
+          const placeholderKey = mode === 'local' ? 'placeholderLocal' : 'placeholderOnline';
+          searchInput.placeholder = searchInput.dataset[placeholderKey] || searchInput.placeholder;
+          searchInput.value = '';
+        }
+        
+        if (mode === 'online') {
+          // Hide preview modal when switching to online mode
+          const previewModalEl = document.getElementById('im-preview-modal');
+          if (previewModalEl) previewModalEl.classList.remove('visible');
+          
+          // Clear selection
+          selectedIcons.clear();
+          updateSelectionUI();
+          
+          // Hide "Add to Project" button, show "Add to Library" button
+          const addToProjectBtn = document.getElementById('im-add-to-project');
+          const addToLibraryBtn = document.getElementById('im-add-to-library');
+          const removeFromProjectBtn = document.getElementById('im-remove-from-project');
+          const exportBtn = document.getElementById('im-export-selected');
+          const deleteBtn = document.getElementById('im-delete-selected');
+          
+          if (addToProjectBtn) addToProjectBtn.style.display = 'none';
+          if (removeFromProjectBtn) removeFromProjectBtn.style.display = 'none';
+          if (exportBtn) exportBtn.style.display = 'none';
+          if (deleteBtn) deleteBtn.style.display = 'none';
+          if (addToLibraryBtn) addToLibraryBtn.style.display = 'inline-flex';
+          
+          // Remove active state from sidebar categories
+          document.querySelectorAll('.im-category-item.active').forEach(item => {
+            item.classList.remove('active');
+          });
+          
+          // Also hide the pinned set header if visible
+          const pinnedHeader = document.getElementById('im-pinned-set');
+          if (pinnedHeader) pinnedHeader.style.display = 'none';
+          
+          // Show initial online state
+          if (iconGrid) {
+            iconGrid.innerHTML = `
+              <div class="im-online-hint">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                <h3>Online Search</h3>
+                <p>Search 150,000+ icons from Iconify</p>
+              </div>
+            `;
+            updateVisibleCount(0);
+          }
+        } else {
+          // Restore local grid - reload page for simplicity
+          const url = new URL(window.location.href);
+          url.searchParams.delete('search');
+          window.location.href = url.toString();
+        }
+      });
+    });
+
+    // ============================================
+    // INITIAL ONLINE SEARCH (from URL param ?online=query)
+    // ============================================
+    const initialOnlineQuery = (window as any).__INITIAL_ONLINE_SEARCH__;
+    if (initialOnlineQuery && initialOnlineQuery.length >= 2) {
+      // Activate online mode
+      currentSearchMode = 'online';
+      document.body.dataset.searchMode = 'online';
+      
+      // Update button states
+      searchModeButtons.forEach(b => {
+        b.classList.remove('active');
+        if ((b as HTMLElement).dataset.mode === 'online') {
+          b.classList.add('active');
+        }
+      });
+      
+      // Update search input
+      if (searchInput) {
+        const placeholderKey = 'placeholderOnline';
+        searchInput.placeholder = searchInput.dataset[placeholderKey] || searchInput.placeholder;
+        searchInput.value = initialOnlineQuery;
+      }
+      
+      // Hide project buttons, show library button
+      const addToProjectBtn = document.getElementById('im-add-to-project');
+      const addToLibraryBtn = document.getElementById('im-add-to-library');
+      const removeFromProjectBtn = document.getElementById('im-remove-from-project');
+      const exportBtn = document.getElementById('im-export-selected');
+      const deleteBtn = document.getElementById('im-delete-selected');
+      
+      if (addToProjectBtn) addToProjectBtn.style.display = 'none';
+      if (removeFromProjectBtn) removeFromProjectBtn.style.display = 'none';
+      if (exportBtn) exportBtn.style.display = 'none';
+      if (deleteBtn) deleteBtn.style.display = 'none';
+      if (addToLibraryBtn) addToLibraryBtn.style.display = 'inline-flex';
+      
+      // Remove active state from sidebar
+      document.querySelectorAll('.im-category-item.active').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Hide pinned header
+      const pinnedHeader = document.getElementById('im-pinned-set');
+      if (pinnedHeader) pinnedHeader.style.display = 'none';
+      
+      // Execute online search
+      searchOnline(initialOnlineQuery);
+      
+      // Clean up URL (remove online param to avoid re-searching on refresh)
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('online');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
 
     // ============================================
     // LANGUAGE SELECTOR DROPDOWN
@@ -254,6 +906,26 @@ switch (sortBy) {
         } else {
           selectionInfo.classList.remove('visible');
         }
+      }
+      
+      // Update button visibility based on search mode
+      const isOnlineMode = currentSearchMode === 'online';
+      const addToProjectBtn = document.getElementById('im-add-to-project');
+      const addToLibraryBtn = document.getElementById('im-add-to-library');
+      const removeFromProjectBtn = document.getElementById('im-remove-from-project');
+      const exportBtn = document.getElementById('im-export-selected');
+      const deleteBtn = document.getElementById('im-delete-selected');
+      
+      if (isOnlineMode) {
+        if (addToProjectBtn) addToProjectBtn.style.display = 'none';
+        if (removeFromProjectBtn) removeFromProjectBtn.style.display = 'none';
+        if (exportBtn) exportBtn.style.display = 'none';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+        if (addToLibraryBtn) addToLibraryBtn.style.display = 'inline-flex';
+      } else {
+        if (addToProjectBtn) addToProjectBtn.style.display = 'inline-flex';
+        if (addToLibraryBtn) addToLibraryBtn.style.display = 'none';
+        // exportBtn and deleteBtn visibility handled elsewhere
       }
     }
 
@@ -331,7 +1003,7 @@ switch (sortBy) {
     // VIEW MODE & SORT CONTROLS
     // ============================================
     const viewBtns = document.querySelectorAll('.im-view-btn');
-    const sortSelect = document.getElementById('im-sort-select') as HTMLSelectElement;
+    const sortSelect = document.getElementById('im-grid-sort') as HTMLSelectElement;
 
     function updateUrl(params: Record<string, string>) {
       const url = new URL(window.location.href);
@@ -356,6 +1028,60 @@ switch (sortBy) {
 
     sortSelect?.addEventListener('change', () => {
       updateUrl({ sort: sortSelect.value });
+    });
+
+    // ============================================
+    // STYLE FILTER (outline/filled)
+    // ============================================
+    const filterBtns = document.querySelectorAll('.im-filter-btn');
+    const styleFilterGrid = document.getElementById('im-icon-grid');
+
+    function detectIconStyle(content: string): 'outline' | 'filled' | 'mixed' {
+      // Check for stroke-based (outline) icons
+      const hasStroke = content.includes('stroke=') || content.includes('stroke-width');
+      const hasFill = content.includes('fill=') && !content.includes('fill="none"') && !content.includes("fill='none'");
+      const hasCurrentColor = content.includes('currentColor');
+      
+      if (hasStroke && !hasFill) return 'outline';
+      if (hasFill && !hasStroke) return 'filled';
+      return 'mixed';
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const style = (btn as HTMLElement).dataset.style;
+        
+        // Update active state
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Filter icons
+        if (styleFilterGrid) {
+          const cards = styleFilterGrid.querySelectorAll('.im-icon-card');
+          let visibleCount = 0;
+          
+          cards.forEach(card => {
+            const content = (card as HTMLElement).dataset.content || '';
+            const iconStyle = detectIconStyle(content);
+            
+            let show = false;
+            if (style === 'all') {
+              show = true;
+            } else if (style === 'outline') {
+              show = iconStyle === 'outline' || iconStyle === 'mixed';
+            } else if (style === 'filled') {
+              show = iconStyle === 'filled' || iconStyle === 'mixed';
+            }
+            
+            (card as HTMLElement).style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+          });
+          
+          // Update visible count
+          const countEl = document.getElementById('im-visible-count');
+          if (countEl) countEl.textContent = visibleCount.toString();
+        }
+      });
     });
 
     // ============================================
@@ -527,15 +1253,32 @@ switch (sortBy) {
     let searchTimeout: ReturnType<typeof setTimeout>;
     searchInput?.addEventListener('input', () => {
       clearTimeout(searchTimeout);
+      clearTimeout(onlineSearchTimeout);
+      
       searchTimeout = setTimeout(() => {
-        const url = new URL(window.location.href);
-        if (searchInput.value) {
-          url.searchParams.set('search', searchInput.value);
+        if (currentSearchMode === 'online') {
+          // Online search - don't reload page, search via API
+          searchOnline(searchInput.value);
         } else {
-          url.searchParams.delete('search');
+          // Local search - reload page with search param
+          const url = new URL(window.location.href);
+          if (searchInput.value) {
+            url.searchParams.set('search', searchInput.value);
+          } else {
+            url.searchParams.delete('search');
+          }
+          window.location.href = url.toString();
         }
-        window.location.href = url.toString();
       }, 500);
+    });
+
+    // Also handle Enter key for immediate search
+    searchInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && currentSearchMode === 'online') {
+        e.preventDefault();
+        clearTimeout(searchTimeout);
+        searchOnline(searchInput.value);
+      }
     });
 
     // Keyboard shortcut for search
@@ -643,7 +1386,20 @@ switch (sortBy) {
       const iconName = card.dataset.name!;
       const action = target.closest('[data-action]')?.getAttribute('data-action');
 
-      if (action === 'copy') {
+      if (action === 'edit') {
+        // Open the icon detail modal
+        const svg = card.querySelector('.im-icon-preview')?.innerHTML || '';
+        const category = card.dataset.category || 'custom';
+        // Icons in index.astro are always from the library (icons.json)
+        if (typeof (window as any).openIconDetail === 'function') {
+          (window as any).openIconDetail({
+            name: iconName,
+            content: svg,
+            category: category,
+            isExisting: true // Always true - these icons are in the library
+          });
+        }
+      } else if (action === 'copy') {
         const svg = card.querySelector('.im-icon-preview')?.innerHTML;
         if (svg) {
           await navigator.clipboard.writeText(svg);
@@ -656,6 +1412,9 @@ switch (sortBy) {
         const isFavorite = toggleFavorite(iconName);
         card.classList.toggle('favorited', isFavorite);
         window.showToast?.(isFavorite ? 'Added to favorites' : 'Removed from favorites', 'success');
+      } else if (action === 'rename') {
+        // Open rename modal instead of using prompt()
+        (window as any).openRenameModal?.(iconName);
       } else if (action === 'delete') {
         if (confirm(`Delete icon "${iconName}"?`)) {
           const deleteRes = await fetch(`/api/icons/${encodeURIComponent(iconName)}/`, {
@@ -757,6 +1516,30 @@ switch (sortBy) {
           updateSelectAllButton();
         }
       }
+    });
+
+    // Double-click to open icon detail modal
+    iconGrid?.addEventListener('dblclick', (e) => {
+      const target = e.target as HTMLElement;
+      const card = target.closest('.im-icon-card') as HTMLElement;
+      if (!card) return;
+      
+      // Don't trigger if clicking on action buttons or checkbox
+      const action = target.closest('[data-action]');
+      const checkbox = target.closest('input[type="checkbox"]');
+      if (action || checkbox) return;
+
+      const iconName = card.dataset.name!;
+      const category = card.dataset.category || 'custom';
+      const svgContent = card.querySelector('.im-icon-preview')?.innerHTML || '';
+
+      // Open detail modal - icons in index.astro are always from the library
+      (window as any).openIconDetail?.({
+        name: iconName,
+        content: svgContent,
+        category: category,
+        isExisting: true // Always true - these icons are in the library
+      });
     });
 
     const isProjectView = new URLSearchParams(window.location.search).get('category') === 'project';
@@ -920,6 +1703,94 @@ switch (sortBy) {
         }
       } catch {
         window.showToast?.('Failed to remove from project', 'error');
+      } finally {
+        hideLoading();
+      }
+    });
+
+    // Add to Library (for online icons)
+    document.getElementById('im-add-to-library')?.addEventListener('click', async () => {
+      if (selectedIcons.size === 0) return;
+
+      const onlineCards = document.querySelectorAll('.im-icon-card.online-icon.selected');
+      if (onlineCards.length === 0) return;
+
+      showLoading(`Adding ${onlineCards.length} icons to library...`);
+
+      let successCount = 0;
+      let errorCount = 0;
+      const addedIcons: { name: string; category: string }[] = [];
+
+      try {
+        for (const card of onlineCards) {
+          const cardEl = card as HTMLElement;
+          const name = cardEl.dataset.name || '';
+          const content = cardEl.dataset.content || '';
+          const category = cardEl.dataset.category || '';
+
+          // Skip if already in library
+          if (cardEl.dataset.inLibrary === 'true') continue;
+
+          // Decode content
+          const decodedContent = content
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&');
+
+          try {
+            const res = await fetch('/api/icons/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, content: decodedContent, category })
+            });
+
+            if (res.ok) {
+              successCount++;
+              addedIcons.push({ name, category });
+              
+              // Mark as in library
+              cardEl.classList.add('in-library');
+              cardEl.classList.remove('selected');
+              cardEl.dataset.inLibrary = 'true';
+              
+              // Update library icons set
+              (window as any).__LIBRARY_ICONS__?.add(name);
+              
+              // Update the actions button
+              const addBtn = cardEl.querySelector('[data-action="add"]');
+              if (addBtn) {
+                addBtn.outerHTML = `<span class="im-icon-in-library" title="Already in Library">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>`;
+              }
+              
+              selectedIcons.delete(name);
+            } else {
+              errorCount++;
+            }
+          } catch {
+            errorCount++;
+          }
+        }
+
+        // Update sidebar counts
+        if (addedIcons.length > 0) {
+          updateSidebarCounts(addedIcons);
+        }
+
+        if (successCount > 0) {
+          window.showToast?.(`Added ${successCount} icons to library`, 'success');
+        }
+        if (errorCount > 0) {
+          window.showToast?.(`Failed to add ${errorCount} icons`, 'error');
+        }
+
+        updateSelectionUI();
+      } catch {
+        window.showToast?.('Failed to add icons to library', 'error');
       } finally {
         hideLoading();
       }
@@ -1204,9 +2075,13 @@ switch (sortBy) {
     let lastHoveredCard: HTMLElement | null = null;
 
     // Show preview on hover - with longer delay to avoid interfering with selection
+    // Skip preview for online icons - they use the detail modal instead
     iconGrid?.addEventListener('mouseover', (e) => {
+      // Skip if in online mode (check both variable and data attribute)
+      if (currentSearchMode === 'online' || document.body.dataset.searchMode === 'online') return;
+      
       const card = (e.target as HTMLElement).closest('.im-icon-card') as HTMLElement;
-      if (!card) return;
+      if (!card || card.classList.contains('online-icon')) return;
 
       // If it's a different card, reset
       if (lastHoveredCard !== card) {
@@ -1325,3 +2200,4 @@ switch (sortBy) {
     });
   });
 </script>
+

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -71,31 +72,212 @@ export type Icons = Record<string, IconDefinition>;
 export interface Icon {
   name: string;
   content: string;
-  inProject?: boolean;  // Flag to indicate if icon is used in the project build
+  inProject?: boolean;  // Computed flag - true if icon is in current project's project-icons.json
 }
 
-// Get icons.json path (library - all imported icons)
+// Get the AppData folder path based on the platform
+function getAppDataPath(): string {
+  const platform = process.platform;
+  const homeDir = os.homedir();
+  
+  if (platform === 'win32') {
+    // Windows: %APPDATA%/sagebox-icon-manager
+    return path.join(process.env.APPDATA || path.join(homeDir, 'AppData', 'Roaming'), 'sagebox-icon-manager');
+  } else if (platform === 'darwin') {
+    // macOS: ~/Library/Application Support/sagebox-icon-manager
+    return path.join(homeDir, 'Library', 'Application Support', 'sagebox-icon-manager');
+  } else {
+    // Linux/Unix: ~/.config/sagebox-icon-manager
+    return path.join(process.env.XDG_CONFIG_HOME || path.join(homeDir, '.config'), 'sagebox-icon-manager');
+  }
+}
+
+// Migrate icons from old project location to AppData (one-time migration)
+function migrateIconsToAppData(appDataDir: string, iconsPath: string): void {
+  // Check for old project-based icons.json locations
+  const oldPaths = [
+    path.resolve(process.cwd(), '..', 'src', 'icons.json'),
+    path.resolve(process.cwd(), 'src', 'icons.json'),
+  ];
+  
+  for (const oldPath of oldPaths) {
+    if (fs.existsSync(oldPath)) {
+      try {
+        const oldData = fs.readFileSync(oldPath, 'utf-8');
+        const oldIcons = JSON.parse(oldData);
+        
+        // Only migrate if there are icons and AppData is empty or doesn't exist
+        if (Array.isArray(oldIcons) && oldIcons.length > 0) {
+          // Create directory if needed
+          if (!fs.existsSync(appDataDir)) {
+            fs.mkdirSync(appDataDir, { recursive: true });
+          }
+          
+          // Merge with existing AppData icons if any
+          let existingIcons: Icon[] = [];
+          if (fs.existsSync(iconsPath)) {
+            try {
+              existingIcons = JSON.parse(fs.readFileSync(iconsPath, 'utf-8')) || [];
+            } catch {
+              existingIcons = [];
+            }
+          }
+          
+          // Merge: existing icons take priority (avoid duplicates by name)
+          const existingNames = new Set(existingIcons.map(i => i.name));
+          const newIcons = oldIcons.filter((i: Icon) => !existingNames.has(i.name));
+          const mergedIcons = [...existingIcons, ...newIcons];
+          
+          fs.writeFileSync(iconsPath, JSON.stringify(mergedIcons, null, 2), 'utf-8');
+          
+          // Remove the old file after successful migration
+          fs.unlinkSync(oldPath);
+          console.log(`[Icon Manager] Migrated ${newIcons.length} icons from ${oldPath} to AppData`);
+        }
+        break; // Only migrate from first found location
+      } catch (e) {
+        console.error(`[Icon Manager] Failed to migrate icons from ${oldPath}:`, e);
+      }
+    }
+  }
+}
+
+// Get icons.json path (library - stored in AppData, global across all projects)
 export function getIconsPath(): string {
+  // Allow override via env variable
   const envPath = process.env.ICONS_PATH;
   if (envPath && fs.existsSync(envPath)) {
     return envPath;
   }
 
-  // Default: look in src folder relative to docs
-  const defaultPath = path.resolve(process.cwd(), '..', 'src', 'icons.json');
+  // Use AppData folder for library storage
+  const appDataDir = getAppDataPath();
+  const iconsPath = path.join(appDataDir, 'icons.json');
+  
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(appDataDir)) {
+    fs.mkdirSync(appDataDir, { recursive: true });
+  }
+  
+  // Try to migrate from old project location (one-time)
+  if (!fs.existsSync(iconsPath)) {
+    migrateIconsToAppData(appDataDir, iconsPath);
+  }
+  
+  // If icons.json still doesn't exist, create empty one
+  if (!fs.existsSync(iconsPath)) {
+    fs.writeFileSync(iconsPath, '[]', 'utf-8');
+  }
+  
+  return iconsPath;
+}
+
+// Get the library folder path (useful for UI to show location)
+export function getLibraryPath(): string {
+  return getAppDataPath();
+}
+
+// Get or set the current project output path (stored in AppData for persistence)
+let cachedOutputPath: string | null = null;
+
+export function getOutputPath(): string | null {
+  if (cachedOutputPath) return cachedOutputPath;
+  
+  // Check environment variable first (VS Code extension)
+  if (process.env.WORKSPACE_PATH) {
+    return path.join(process.env.WORKSPACE_PATH, 'src', 'icons');
+  }
+  
+  // Check config file in AppData
+  const configPath = path.join(getAppDataPath(), 'config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (config.outputPath) {
+        cachedOutputPath = config.outputPath;
+        return cachedOutputPath;
+      }
+    } catch {}
+  }
+  
+  return null;
+}
+
+export function setOutputPath(outputPath: string): void {
+  cachedOutputPath = outputPath;
+  
+  // Persist to config file
+  const configPath = path.join(getAppDataPath(), 'config.json');
+  let config: Record<string, any> = {};
+  
+  if (fs.existsSync(configPath)) {
+    try {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch {}
+  }
+  
+  config.outputPath = outputPath;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+}
+
+// Get project-icons.json path (project-specific file with icon names used in that project)
+export function getProjectIconsPath(): string {
+  // First check cached/configured output path
+  const outputPath = getOutputPath();
+  if (outputPath) {
+    return path.join(outputPath, 'project-icons.json');
+  }
+  
+  // First check environment variable (set by VS Code extension)
+  const workspacePath = process.env.WORKSPACE_PATH;
+  if (workspacePath) {
+    return path.join(workspacePath, 'src', 'icons', 'project-icons.json');
+  }
+  
+  // Default: look relative to cwd
+  const defaultPath = path.resolve(process.cwd(), '..', 'src', 'project-icons.json');
   if (fs.existsSync(defaultPath)) {
     return defaultPath;
   }
-
+  
   // Fallback
-  return path.resolve(process.cwd(), 'src', 'icons.json');
+  return path.resolve(process.cwd(), 'src', 'project-icons.json');
 }
 
-// Read project icon names (icons with inProject: true)
+// Read project icon names from project-icons.json (project-specific)
+export async function readProjectIconNames(): Promise<Set<string>> {
+  const projectIconsPath = getProjectIconsPath();
+  
+  if (!fs.existsSync(projectIconsPath)) {
+    return new Set();
+  }
+  
+  try {
+    const data = JSON.parse(fs.readFileSync(projectIconsPath, 'utf-8'));
+    if (Array.isArray(data)) {
+      return new Set(data);
+    }
+    return new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+// Save project icon names to project-icons.json
+async function saveProjectIconNames(iconNames: string[]): Promise<void> {
+  const projectIconsPath = getProjectIconsPath();
+  const dir = path.dirname(projectIconsPath);
+  
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  
+  fs.writeFileSync(projectIconsPath, JSON.stringify(iconNames, null, 2), 'utf-8');
+}
+
+// Read project icon names (icons that are in the current project)
 export async function readProjectIcons(): Promise<Set<string>> {
-  const allIcons = await readIcons();
-  const projectIcons = allIcons.filter(icon => icon.inProject === true);
-  return new Set(projectIcons.map(icon => icon.name));
+  return readProjectIconNames();
 }
 
 // Save icons and trigger auto-build
@@ -109,42 +291,54 @@ async function saveIconsAndBuild(icons: Icon[]): Promise<void> {
   await runCliBuild();
 }
 
-// Run the CLI build command to generate TypeScript
+// Run the build to generate TypeScript and JSON files in the output path
 async function runCliBuild(): Promise<{ success: boolean; message: string }> {
-  const iconsPath = getIconsPath();
-  const iconsDir = path.dirname(iconsPath);  // src/icons
-
-  // Get project root (go up from src/icons to project root)
-  const projectRoot = path.dirname(path.dirname(iconsDir));
-
-  // Check if this is a user project (has package.json with sagebox dependency)
-  const packageJsonPath = path.join(projectRoot, 'package.json');
-  if (!fs.existsSync(packageJsonPath)) {
-    console.log('[Icon Manager] No package.json found, skipping auto-build');
-    return { success: false, message: 'No package.json' };
+  const outputPath = getOutputPath();
+  
+  if (!outputPath) {
+    console.log('[Icon Manager] No output path configured, skipping auto-build');
+    return { success: false, message: 'No output path configured' };
   }
 
   try {
-    // Use npx to run sagebox CLI - works for both linked and installed packages
-    const isWindows = process.platform === 'win32';
-    const cmd = isWindows ? 'npx.cmd sagebox icons build' : 'npx sagebox icons build';
-
-    console.log(`[Icon Manager] Auto-building TypeScript...`);
-    console.log(`[Icon Manager] Project root: ${projectRoot}`);
-
-    const { stdout, stderr } = await execAsync(cmd, {
-      cwd: projectRoot,
-      env: { ...process.env },
-      shell: true
-    });
-
-    if (stdout) console.log('[Icon Manager]', stdout.trim());
-    if (stderr && !stderr.includes('ExperimentalWarning')) {
-      console.error('[Icon Manager] stderr:', stderr);
+    console.log(`[Icon Manager] Auto-building to: ${outputPath}`);
+    
+    // Get project icons (only icons that are in project-icons.json)
+    const projectIcons = await exportProjectIcons();
+    
+    if (projectIcons.length === 0) {
+      console.log('[Icon Manager] No icons in project, nothing to build');
+      return { success: true, message: 'No icons to build' };
     }
+    
+    // Ensure output directory exists
+    if (!fs.existsSync(outputPath)) {
+      fs.mkdirSync(outputPath, { recursive: true });
+    }
+    
+    // Generate and write index.ts
+    const tsContent = generateIconsTS(projectIcons);
+    const indexTsPath = path.join(outputPath, 'index.ts');
+    fs.writeFileSync(indexTsPath, tsContent, 'utf-8');
+    
+    // Generate and write icons.json (just the project icons with name and content)
+    const iconsJsonContent = projectIcons.map(icon => ({
+      name: icon.name,
+      content: icon.content
+    }));
+    const iconsJsonPath = path.join(outputPath, 'icons.json');
+    fs.writeFileSync(iconsJsonPath, JSON.stringify(iconsJsonContent, null, 2), 'utf-8');
+    
+    // Generate and write index.json (icon names only, for quick reference)
+    const indexJsonPath = path.join(outputPath, 'index.json');
+    fs.writeFileSync(indexJsonPath, JSON.stringify(projectIcons.map(i => i.name), null, 2), 'utf-8');
 
-    console.log('[Icon Manager] ✓ Build completed');
-    return { success: true, message: 'Build completed' };
+    console.log(`[Icon Manager] ✓ Build completed: ${projectIcons.length} icons`);
+    console.log(`[Icon Manager]   - ${indexTsPath}`);
+    console.log(`[Icon Manager]   - ${iconsJsonPath}`);
+    console.log(`[Icon Manager]   - ${indexJsonPath}`);
+    
+    return { success: true, message: `Built ${projectIcons.length} icons` };
   } catch (error) {
     console.error('[Icon Manager] Build failed:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Build failed' };
@@ -231,36 +425,45 @@ export async function buildSgIconComponent(): Promise<{ success: boolean; count:
   return { success: true, count: icons.length, path: iconsPath };
 }
 
-// Add icons to project (set inProject: true)
+// Add icons to project (add to project-icons.json)
 export async function addToProject(iconNames: string[]): Promise<void> {
-  const allIcons = await readIcons();
-  const namesSet = new Set(iconNames);
-
-  const updatedIcons = allIcons.map(icon => ({
-    ...icon,
-    inProject: namesSet.has(icon.name) ? true : icon.inProject
-  }));
-
-  await saveIconsAndBuild(updatedIcons);
+  const currentProjectIcons = await readProjectIconNames();
+  
+  // Add new names to the set
+  for (const name of iconNames) {
+    currentProjectIcons.add(name);
+  }
+  
+  // Save updated list
+  await saveProjectIconNames(Array.from(currentProjectIcons).sort());
+  
+  // Wait for filesystem to sync and trigger build
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await runCliBuild();
 }
 
-// Remove icons from project (set inProject: false)
+// Remove icons from project (remove from project-icons.json)
 export async function removeFromProject(iconNames: string[]): Promise<void> {
-  const allIcons = await readIcons();
-  const namesSet = new Set(iconNames);
-
-  const updatedIcons = allIcons.map(icon => ({
-    ...icon,
-    inProject: namesSet.has(icon.name) ? false : icon.inProject
-  }));
-
-  await saveIconsAndBuild(updatedIcons);
+  const currentProjectIcons = await readProjectIconNames();
+  
+  // Remove names from the set
+  for (const name of iconNames) {
+    currentProjectIcons.delete(name);
+  }
+  
+  // Save updated list
+  await saveProjectIconNames(Array.from(currentProjectIcons).sort());
+  
+  // Wait for filesystem to sync and trigger build
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await runCliBuild();
 }
 
 // Export only project icons (for production build)
 export async function exportProjectIcons(): Promise<Icon[]> {
   const allIcons = await readIcons();
-  return allIcons.filter(icon => icon.inProject === true);
+  const projectIconNames = await readProjectIconNames();
+  return allIcons.filter(icon => projectIconNames.has(icon.name));
 }
 
 // Read icons in raw JSON format
@@ -289,6 +492,7 @@ export function saveIconsRaw(icons: Icons): void {
 }
 
 // Read icons as array with name/content/inProject for UI
+// inProject is computed dynamically from project-icons.json
 export async function readIcons(): Promise<Icon[]> {
   const iconsPath = getIconsPath();
   if (!fs.existsSync(iconsPath)) {
@@ -297,17 +501,21 @@ export async function readIcons(): Promise<Icon[]> {
 
   try {
     const data = JSON.parse(fs.readFileSync(iconsPath, 'utf-8'));
+    
+    // Get project icon names to compute inProject flag
+    const projectIconNames = await readProjectIconNames();
 
-    // Handle both formats: array of {name, content, inProject?} or object {name: def}
+    // Handle both formats: array of {name, content} or object {name: def}
     if (Array.isArray(data)) {
-      // Ensure inProject is boolean (default to false for backwards compatibility)
+      // Compute inProject from project-icons.json (not stored in library)
       return data.map(icon => ({
-        ...icon,
-        inProject: icon.inProject === true
+        name: icon.name,
+        content: icon.content,
+        inProject: projectIconNames.has(icon.name)
       }));
     }
 
-    // Convert object format to array (legacy format, default inProject to false)
+    // Convert object format to array (legacy format)
     return Object.entries(data).map(([name, def]) => {
       const iconDef = def as IconDefinition;
       const viewBox = iconDef.viewBox || '0 0 24 24';
@@ -316,14 +524,14 @@ export async function readIcons(): Promise<Icon[]> {
         return `<path d="${d}"${fillRule}/>`;
       }).join('');
       const content = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="currentColor">${paths}</svg>`;
-      return { name, content, inProject: false };
+      return { name, content, inProject: projectIconNames.has(name) };
     });
   } catch {
     return [];
   }
 }
 
-// Save icons (accepts array format)
+// Save icons to library (without inProject - that's stored in project-icons.json)
 export async function saveIcons(icons: Icon[]): Promise<void> {
   const iconsPath = getIconsPath();
   const dir = path.dirname(iconsPath);
@@ -332,8 +540,11 @@ export async function saveIcons(icons: Icon[]): Promise<void> {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // Sort alphabetically
-  const sorted = [...icons].sort((a, b) => a.name.localeCompare(b.name));
+  // Sort alphabetically and remove inProject (it's computed, not stored)
+  const sorted = [...icons]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ name, content }) => ({ name, content }));
+  
   fs.writeFileSync(iconsPath, JSON.stringify(sorted, null, 2), 'utf-8');
 
   // Ensure file is flushed to disk
