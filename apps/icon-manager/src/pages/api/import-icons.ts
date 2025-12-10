@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { readIcons, saveIcons, ICON_SETS, type Icon } from '../../lib/icons.ts';
+import { readIcons, saveIcons, type Icon } from '../../lib/icons.ts';
 
 // POST /api/import-icons - Import specific icons by name from Iconify
 export const POST: APIRoute = async ({ request }) => {

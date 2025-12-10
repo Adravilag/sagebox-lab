@@ -323,20 +323,24 @@ export function generateLicenseFile(usedPrefixes: string[]): string {
   for (const prefix of uniquePrefixes) {
     const license = ICON_SET_LICENSES[prefix];
     if (license) {
-      lines.push(`## ${license.name}`);
-      lines.push('');
-      lines.push(`**License:** ${license.type}`);
-      lines.push(`**URL:** ${license.url}`);
+      lines.push(
+        `## ${license.name}`,
+        '',
+        `**License:** ${license.type}`,
+        `**URL:** ${license.url}`
+      );
       if (license.attribution) {
         lines.push(`**Attribution:** ${license.attribution}`);
       }
-      lines.push('');
-      lines.push('```');
-      lines.push(license.text);
-      lines.push('```');
-      lines.push('');
-      lines.push('---');
-      lines.push('');
+      lines.push(
+        '',
+        '```',
+        license.text,
+        '```',
+        '',
+        '---',
+        ''
+      );
     }
   }
 

@@ -10,7 +10,8 @@ export const GET: APIRoute = async () => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to read icons' }), {
+    console.error('[API] Failed to read icons:', error);
+    return new Response(JSON.stringify({ error: 'Failed to read icons', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

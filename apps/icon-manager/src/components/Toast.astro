@@ -112,7 +112,7 @@
   // Toast utility for client-side use
   declare global {
     interface Window {
-      showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+      showToast?: (message: string, type: 'success' | 'error' | 'info') => void;
     }
   }
 

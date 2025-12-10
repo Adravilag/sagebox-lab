@@ -67,7 +67,8 @@ export const GET: APIRoute = async ({ url }) => {
       }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to export project icons' }), {
+    console.error('[API] Failed to export project icons:', error);
+    return new Response(JSON.stringify({ error: 'Failed to export project icons', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

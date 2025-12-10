@@ -127,7 +127,8 @@ export const GET: APIRoute = async ({ params }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to get icon' }), {
+    console.error('[API] Failed to get icon:', error);
+    return new Response(JSON.stringify({ error: 'Failed to get icon', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

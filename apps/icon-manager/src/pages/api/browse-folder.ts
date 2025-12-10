@@ -67,7 +67,7 @@ if ($folderBrowser.SelectedPath) {
     if (folderPath) {
       return new Response(JSON.stringify({ 
         success: true, 
-        path: folderPath.replace(/\\/g, '/') 
+        path: folderPath.replaceAll('\\', '/') 
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }

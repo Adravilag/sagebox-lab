@@ -41,7 +41,8 @@ export const GET: APIRoute = async () => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to read project icons' }), {
+    console.error('[API] Failed to read project icons:', error);
+    return new Response(JSON.stringify({ error: 'Failed to read project icons', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -129,7 +130,8 @@ export const DELETE: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to remove icons from project' }), {
+    console.error('[API] Failed to remove icons from project:', error);
+    return new Response(JSON.stringify({ error: 'Failed to remove icons from project', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

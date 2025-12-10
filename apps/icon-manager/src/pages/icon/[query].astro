@@ -153,7 +153,7 @@ const existingNames = new Set(existingIcons.map(icon => icon.name));
   const selectionBar = document.getElementById('selection-bar')!;
   const selectionCount = document.getElementById('selection-count')!;
   const clearSelectionBtn = document.getElementById('clear-selection')!;
-  const addSelectedBtn = document.getElementById('add-selected')!;
+  const addSelectedBtn = document.getElementById('add-selected') as HTMLButtonElement;
   const toast = document.getElementById('toast')!;
   const resultsQuery = document.getElementById('results-query')!;
   const resultsCount = document.getElementById('results-count')!;

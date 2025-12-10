@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { exportProjectIcons, readProjectIcons } from '../../../lib/icons';
+import { exportProjectIcons } from '../../../lib/icons';
 import { generateLicenseFile, generateIndividualLicenses } from '../../../lib/licenses';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,7 +38,8 @@ export const icons: Record<string, IconDefinition> = {
     const { name, content } = icon;
 
     // Parse SVG to extract paths and viewBox
-    const viewBoxMatch = content.match(/viewBox=["']([^"']+)["']/i);
+    const viewBoxRegex = /viewBox=["']([^"']+)["']/i;
+    const viewBoxMatch = viewBoxRegex.exec(content);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
 
     const paths: string[] = [];
@@ -48,7 +49,8 @@ export const icons: Record<string, IconDefinition> = {
     }
 
     // Check for fill-rule
-    const fillRuleMatch = content.match(/fill-rule=["']([^"']+)["']/i);
+    const fillRuleRegex = /fill-rule=["']([^"']+)["']/i;
+    const fillRuleMatch = fillRuleRegex.exec(content);
     const fillRule = fillRuleMatch ? fillRuleMatch[1] : null;
 
     // Generate the entry - remove prefix for cleaner names
@@ -102,7 +104,8 @@ export const GET: APIRoute = async () => {
       }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to generate icons' }), {
+    console.error('[API] Failed to generate icons:', error);
+    return new Response(JSON.stringify({ error: 'Failed to generate icons', details: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

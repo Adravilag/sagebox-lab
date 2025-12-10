@@ -376,6 +376,15 @@ switch (sortBy) {
 </style>
 
 <script>
+  // Type declarations for window extensions
+  declare global {
+    interface Window {
+      openIconDetail?: (data: { name: string; content: string; category: string; isExisting: boolean }) => void;
+      openImportModal?: () => void;
+      showToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+    }
+  }
+
   // Client-side functionality
   document.addEventListener('DOMContentLoaded', () => {
     // Check for addIcon URL parameter to open import modal with search
@@ -418,7 +427,7 @@ switch (sortBy) {
     const searchModeButtons = document.querySelectorAll('.im-mode-btn');
     let currentSearchMode: 'local' | 'online' = 'local';
     let originalGridContent: string | null = null;
-    let onlineSearchTimeout: ReturnType<typeof setTimeout>;
+    let onlineSearchTimeout: ReturnType<typeof setTimeout> | undefined;
 
     // Store original grid content for restoration
     if (iconGrid) {

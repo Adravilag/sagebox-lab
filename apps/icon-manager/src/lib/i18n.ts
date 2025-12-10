@@ -677,7 +677,8 @@ export function getLocale(request?: Request): Locale {
   if (request) {
     const cookie = request.headers.get('cookie');
     if (cookie) {
-      const match = cookie.match(/saged-icon-lang=(\w+)/);
+      const langRegex = /saged-icon-lang=(\w+)/;
+      const match = langRegex.exec(cookie);
       if (match && SUPPORTED_LOCALES.includes(match[1] as Locale)) {
         return match[1] as Locale;
       }

@@ -370,7 +370,8 @@ export const icons: Record<string, IconDefinition> = {
   icons.forEach((icon, index) => {
     const { name, content } = icon;
 
-    const viewBoxMatch = content.match(/viewBox=["']([^"']+)["']/i);
+    const viewBoxRegex = /viewBox=["']([^"']+)["']/i;
+    const viewBoxMatch = viewBoxRegex.exec(content);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
 
     const paths: string[] = [];
@@ -379,7 +380,8 @@ export const icons: Record<string, IconDefinition> = {
       paths.push(match[1]);
     }
 
-    const fillRuleMatch = content.match(/fill-rule=["']([^"']+)["']/i);
+    const fillRuleRegex = /fill-rule=["']([^"']+)["']/i;
+    const fillRuleMatch = fillRuleRegex.exec(content);
     const fillRule = fillRuleMatch ? fillRuleMatch[1] : null;
 
     const cleanName = name.includes(':') ? name.split(':')[1] : name;
@@ -435,7 +437,7 @@ export async function addToProject(iconNames: string[]): Promise<void> {
   }
   
   // Save updated list
-  await saveProjectIconNames(Array.from(currentProjectIcons).sort());
+  await saveProjectIconNames(Array.from(currentProjectIcons).sort((a, b) => a.localeCompare(b)));
   
   // Wait for filesystem to sync and trigger build
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -452,7 +454,7 @@ export async function removeFromProject(iconNames: string[]): Promise<void> {
   }
   
   // Save updated list
-  await saveProjectIconNames(Array.from(currentProjectIcons).sort());
+  await saveProjectIconNames(Array.from(currentProjectIcons).sort((a, b) => a.localeCompare(b)));
   
   // Wait for filesystem to sync and trigger build
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -595,7 +597,8 @@ export function parseSVG(svgContent: string) {
   let viewBox = '0 0 24 24';
   let fillRule: string | undefined;
 
-  const viewBoxMatch = svgContent.match(/viewBox=["']([^"']+)["']/i);
+  const viewBoxRegex = /viewBox=["']([^"']+)["']/i;
+  const viewBoxMatch = viewBoxRegex.exec(svgContent);
   if (viewBoxMatch) {
     viewBox = viewBoxMatch[1];
   }
@@ -605,7 +608,8 @@ export function parseSVG(svgContent: string) {
     paths.push(match[1]);
   }
 
-  const fillRuleMatch = svgContent.match(/fill-rule=["']([^"']+)["']/i);
+  const fillRuleRegex = /fill-rule=["']([^"']+)["']/i;
+  const fillRuleMatch = fillRuleRegex.exec(svgContent);
   if (fillRuleMatch) {
     fillRule = fillRuleMatch[1];
   }
@@ -615,7 +619,7 @@ export function parseSVG(svgContent: string) {
 
 export function toKebabCase(str: string): string {
   return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/[\s_]+/g, '-')
+    .replaceAll(/([a-z])([A-Z])/g, '$1-$2')
+    .replaceAll(/[\s_]+/g, '-')
     .toLowerCase();
 }

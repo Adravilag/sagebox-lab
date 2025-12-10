@@ -25,7 +25,7 @@ export const GET: APIRoute = async () => {
     let relativePath = outputPath || 'src/icons';
     if (iconsPath && workspacePath) {
       const fullDir = path.dirname(iconsPath);
-      relativePath = path.relative(workspacePath, fullDir).replace(/\\/g, '/');
+      relativePath = path.relative(workspacePath, fullDir).replaceAll('\\', '/');
     }
 
     return new Response(JSON.stringify({

@@ -800,6 +800,8 @@ const activeSetCount = isSetCategory ? (categories.sets[currentCategory]?.length
     if (!activeItem) return;
 
     function checkVisibility() {
+      if (!scrollContainer || !pinnedSet || !activeItem) return;
+      
       const containerRect = scrollContainer.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
 
